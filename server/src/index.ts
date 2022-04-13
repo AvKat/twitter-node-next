@@ -1,18 +1,35 @@
+import "reflect-metadata";
 import { MikroORM } from "@mikro-orm/core";
 import { __prod__ } from "./constants";
-import { Post } from "./entities/Post";
 import mikroConf from "./mikro-orm.config";
+import express from "express";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
+import { HelloResolver } from "./resolvers/hello";
+import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
+import { PostResolver } from "./resolvers/post";
 
 const main = async () => {
-    const orm = await MikroORM.init(mikroConf)
-    await orm.getMigrator().up();
+  const orm = await MikroORM.init(mikroConf);
+  await orm.getMigrator().up();
 
-    const em = orm.em.fork();
+  const app = express();
 
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [HelloResolver, PostResolver],
+      validate: false,
+    }),
+    context: () => ({ em: orm.em.fork() }),
+    plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+  });
 
-    const posts = await em.find(Post, {});
-    console.log(posts);
-}
+  await apolloServer.start();
+  apolloServer.applyMiddleware({ app });
 
+  app.listen(4000, () => {
+    console.log("listening on port 4000");
+  });
+};
 
-main()
+main();
