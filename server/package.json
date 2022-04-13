@@ -1,0 +1,36 @@
+{
+  "name": "@twitter/server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "@mikro-orm/cli": "^5.1.2",
+    "@mikro-orm/core": "^5.1.2",
+    "@mikro-orm/migrations": "^5.1.2",
+    "@mikro-orm/postgresql": "^5.1.2",
+    "pg": "^8.7.3"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.23",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3"
+  },
+  "scripts": {
+    "watch": "tsc --watch",
+    "dev": "nodemon dist/index.js",
+    "dev2": "nodemon --exec ts-node dist/index.js",
+    "start": "tsc && node dist/index.js",
+    "start2": "ts-node src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "mikro-orm": {
+    "useTsNode": true,
+    "configPaths": [
+      "./src/mikro-orm.config.ts",
+      "./dist/mikro-orm.config.js"
+    ]
+  }
+}
