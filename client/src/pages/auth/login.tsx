@@ -4,11 +4,11 @@ import { NextPage } from "next";
 import { useRouter } from "next/router";
 import { InputField } from "../../components/InputField";
 import { Wrapper } from "../../components/Wrapper";
-import { useRegisterMutation } from "../../generated/graphql";
+import { useLoginMutation } from "../../generated/graphql";
 import { toErrorMap } from "../../utils/toErrorMap";
 
-const Register: NextPage = () => {
-  const [, register] = useRegisterMutation();
+const Login: NextPage = () => {
+  const [, login] = useLoginMutation();
   const router = useRouter();
 
   return (
@@ -16,10 +16,10 @@ const Register: NextPage = () => {
       <Formik
         initialValues={{ username: "", password: "" }}
         onSubmit={async (val, { setErrors }) => {
-          const { data } = await register(val);
-          if (data?.register.errors) {
-            setErrors(toErrorMap(data.register.errors));
-          } else if (data?.register.user) {
+          const { data } = await login(val);
+          if (data?.login.errors) {
+            setErrors(toErrorMap(data.login.errors));
+          } else if (data?.login.user) {
             router.push("/");
           }
         }}
@@ -46,7 +46,7 @@ const Register: NextPage = () => {
                 mt={4}
                 isLoading={isSubmitting}
               >
-                Register
+                Login
               </Button>
             </Flex>
           </Form>
@@ -56,4 +56,4 @@ const Register: NextPage = () => {
   );
 };
 
-export default Register;
+export default Login;
