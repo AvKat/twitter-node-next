@@ -8,6 +8,7 @@ import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import { PostResolver } from "./resolvers/post";
+import { UserResolver } from "./resolvers/userResolver";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConf);
@@ -17,7 +18,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver, PostResolver],
+      resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
     context: () => ({ em: orm.em.fork() }),
