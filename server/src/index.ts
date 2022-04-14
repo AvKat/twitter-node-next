@@ -9,6 +9,10 @@ import { HelloResolver } from "./resolvers/hello";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/userResolver";
+import { createClient } from "redis";
+import session from "express-session";
+import connectRedis from "connect-redis";
+import { EmContext } from "./types";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConf);
@@ -16,12 +20,38 @@ const main = async () => {
 
   const app = express();
 
+  const RedisStore = connectRedis(session);
+  const redisClient = createClient({ legacyMode: true });
+  redisClient.connect().catch(console.log);
+
+  app.use(
+    session({
+      name: "qid",
+      store: new RedisStore({
+        client: redisClient,
+        disableTouch: true,
+      }),
+      cookie: {
+        maxAge: 1000 * 3600 * 24 * 365,
+        httpOnly: true,
+        sameSite: "lax",
+      },
+      secret: "eldecogreens",
+      resave: false,
+      saveUninitialized: false,
+    })
+  );
+
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: () => ({ em: orm.em.fork() }),
+    context: ({ req, res }): EmContext => ({
+      em: orm.em.fork(),
+      req,
+      res,
+    }),
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
   });
 
