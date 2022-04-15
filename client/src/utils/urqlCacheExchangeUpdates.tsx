@@ -5,7 +5,10 @@ import {
   ResolveInfo,
   Variables,
   UpdatesConfig,
+  cacheExchange,
 } from "@urql/exchange-graphcache";
+import { NextUrqlClientConfig } from "next-urql";
+import { dedupExchange, fetchExchange } from "urql";
 import {
   LoginMutation,
   MeQuery,
@@ -81,4 +84,18 @@ const urqlCacheExchangeUpdates: Partial<UpdatesConfig> = {
   },
 };
 
-export { urqlCacheExchangeUpdates };
+const createUrqlClient: NextUrqlClientConfig = (ssrExchange) => ({
+  url: "http://localhost:4000/graphql",
+  fetchOptions: { credentials: "include" },
+  suspense: true,
+  exchanges: [
+    dedupExchange,
+    cacheExchange({
+      updates: urqlCacheExchangeUpdates,
+    }),
+    ssrExchange,
+    fetchExchange,
+  ],
+});
+
+export { createUrqlClient, urqlCacheExchangeUpdates };
