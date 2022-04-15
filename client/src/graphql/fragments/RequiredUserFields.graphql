@@ -1,0 +1,4 @@
+fragment RequiredUserFields on User {
+  id
+  username
+}

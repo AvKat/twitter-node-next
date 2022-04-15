@@ -3,6 +3,7 @@ import { EmContext } from "../types";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import argon2 from "argon2";
 import { UserResponse, UsernamePasswordInputResolver } from "./_helpers";
+import { COOKIE_NAME } from "../constants";
 
 @Resolver()
 export class UserResolver {
@@ -84,5 +85,21 @@ export class UserResolver {
     req.session.userId = user.id;
 
     return { user };
+  }
+
+  @Mutation(() => Boolean)
+  async logout(@Ctx() { req, res }: EmContext): Promise<boolean> {
+    return new Promise((resolve) => {
+      req.session.destroy((err) => {
+        res.clearCookie(COOKIE_NAME);
+        if (err) {
+          resolve(false);
+          console.log(err);
+          return;
+        }
+
+        resolve(true);
+      });
+    });
   }
 }
