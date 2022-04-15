@@ -1,5 +1,6 @@
-const __prod__ = process.env.NODE_ENV === "production";
+export const __prod__ = process.env.NODE_ENV === "production";
 
-const COOKIE_NAME = "qid";
+export const COOKIE_NAME = "qid";
 
-export { __prod__, COOKIE_NAME };
+export const MIN_USERNAME_LENGTH = 4;
+export const MIN_PASSWORD_LENGTH = 6;

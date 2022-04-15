@@ -1,5 +1,4 @@
 import {
-  chakra,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -19,11 +18,22 @@ const InputField: React.FC<InputFieldProps> = ({
   ...props
 }) => {
   const [field, { error }] = useField(props);
+  let placeholder = label;
+
+  if (props.placeholder) {
+    placeholder = props.placeholder;
+  }
 
   return (
     <FormControl isInvalid={!!error}>
       <FormLabel htmlFor={field.name}>{label}</FormLabel>
-      <Input {...field} {...inputProps} id={field.name} size="sm" />
+      <Input
+        {...field}
+        {...inputProps}
+        id={field.name}
+        size="sm"
+        placeholder={placeholder}
+      />
       {error && <FormErrorMessage>{error}</FormErrorMessage>}
     </FormControl>
   );

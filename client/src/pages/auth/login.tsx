@@ -16,7 +16,7 @@ const Login: NextPage = () => {
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ usernameOrEmail: "", password: "" }}
         onSubmit={async (val, { setErrors }) => {
           const { data } = await login(val);
           if (data?.login.errors) {
@@ -28,16 +28,11 @@ const Login: NextPage = () => {
       >
         {({ isSubmitting }) => (
           <Form>
-            <InputField
-              label="Username"
-              name="username"
-              placeholder="Username"
-            />
+            <InputField label="Username or Email" name="usernameOrEmail" />
             <Box mt={8}>
               <InputField
                 label="Password"
                 name="password"
-                placeholder="Password"
                 inputProps={{ type: "password" }}
               />
             </Box>

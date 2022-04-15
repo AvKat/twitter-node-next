@@ -16,7 +16,7 @@ const Register: NextPage = () => {
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ username: "", email: "", password: "" }}
         onSubmit={async (val, { setErrors }) => {
           const { data } = await register(val);
           if (data?.register.errors) {
@@ -28,16 +28,14 @@ const Register: NextPage = () => {
       >
         {({ isSubmitting }) => (
           <Form>
-            <InputField
-              label="Username"
-              name="username"
-              placeholder="Username"
-            />
+            <InputField label="Username" name="username" />
+            <Box mt={8}>
+              <InputField label="Email" name="email" />
+            </Box>
             <Box mt={8}>
               <InputField
                 label="Password"
                 name="password"
-                placeholder="Password"
                 inputProps={{ type: "password" }}
               />
             </Box>

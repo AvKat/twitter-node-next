@@ -2,8 +2,23 @@ import { User } from "../entities/User";
 import { EmContext } from "../types";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import argon2 from "argon2";
-import { UserResponse, UsernamePasswordInputResolver } from "./_helpers";
-import { COOKIE_NAME } from "../constants";
+import {
+  UserResponse,
+  UsernameOrEmailPasswordInputResolver,
+  UsernameEmailPasswordInputResolver,
+} from "./_helpers";
+import {
+  COOKIE_NAME,
+  MIN_PASSWORD_LENGTH,
+  MIN_USERNAME_LENGTH,
+} from "../constants";
+import { validateField } from "../utils/validation";
+import {
+  emailValidator,
+  lengthValidator,
+  usernameValidator,
+} from "../utils/validation/validators";
+import { validationErrors } from "../utils/validation/errors";
 
 @Resolver()
 export class UserResolver {
@@ -17,35 +32,39 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async register(
-    @Arg("options") opts: UsernamePasswordInputResolver,
+    @Arg("options") opts: UsernameEmailPasswordInputResolver,
     @Ctx() { em, req }: EmContext
   ): Promise<UserResponse> {
-    if (opts.username.length <= 2) {
-      return {
-        errors: [
-          { field: "username", message: "Length must be greater than 2" },
-        ],
-      };
-    }
-    if (opts.password.length < 4) {
-      return {
-        errors: [
-          { field: "password", message: "Length must be greater than 4" },
-        ],
-      };
-    }
+    const usernameErrors = validateField(opts.username, [
+      usernameValidator,
+      lengthValidator(MIN_USERNAME_LENGTH, "username"),
+    ]);
+    const emailErrors = validateField(opts.email, [emailValidator]);
+    const passwordErrors = validateField(opts.password, [
+      lengthValidator(MIN_PASSWORD_LENGTH, "password"),
+    ]);
+
+    const errors = [...usernameErrors, ...emailErrors, ...passwordErrors];
+
+    if (errors.length > 0) return { errors };
+
     const hashedPassword = await argon2.hash(opts.password);
     const user = em.create(User, {
       username: opts.username,
+      email: opts.email,
       password: hashedPassword,
     });
     try {
       await em.persistAndFlush(user);
     } catch (e) {
       if (e.code === "23505") {
-        return {
-          errors: [{ field: "username", message: "Username taken" }],
-        };
+        let errors;
+        if (e.constraint.includes("email")) {
+          errors = [validationErrors.email.duplicate];
+        } else {
+          errors = [validationErrors.username.duplicate];
+        }
+        return { errors };
       }
     }
 
@@ -55,30 +74,33 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg("options") opts: UsernamePasswordInputResolver,
+    @Arg("options") opts: UsernameOrEmailPasswordInputResolver,
     @Ctx() { em, req }: EmContext
   ): Promise<UserResponse> {
-    const user = await em.findOne(User, { username: opts.username });
+    const isEmail = opts.usernameOrEmail.includes("@");
+    const validators = isEmail
+      ? [emailValidator]
+      : [lengthValidator(MIN_USERNAME_LENGTH, "username")];
+    const errors = validateField(opts.usernameOrEmail, validators);
+
+    if (errors.length > 0) return { errors };
+
+    const user = await em.findOne(
+      User,
+      isEmail
+        ? { email: opts.usernameOrEmail }
+        : { username: opts.usernameOrEmail }
+    );
     if (!user) {
       return {
-        errors: [
-          {
-            field: "username",
-            message: "User doesn't exist.",
-          },
-        ],
+        errors: [validationErrors.usernameOrEmail.notExists],
       };
     }
 
     const valid = await argon2.verify(user.password, opts.password);
     if (!valid) {
       return {
-        errors: [
-          {
-            field: "password",
-            message: "Incorrect password",
-          },
-        ],
+        errors: [validationErrors.password.incorrect],
       };
     }
 

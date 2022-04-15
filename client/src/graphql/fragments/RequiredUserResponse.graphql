@@ -1,0 +1,9 @@
+fragment RequiredUserResponse on UserResponse {
+  errors {
+    field
+    message
+  }
+  user {
+    ...RequiredUserFields
+  }
+}

@@ -1,10 +1,25 @@
 import { InputType, Field, ObjectType } from "type-graphql";
 import { User } from "../entities/User";
 
+/*
+ * Used for login, where value can be username or email
+ */
 @InputType()
-class UsernamePasswordInputResolver {
+class UsernameOrEmailPasswordInputResolver {
+  @Field()
+  usernameOrEmail: string;
+
+  @Field()
+  password: string;
+}
+
+@InputType()
+class UsernameEmailPasswordInputResolver {
   @Field()
   username: string;
+
+  @Field()
+  email: string;
 
   @Field()
   password: string;
@@ -27,4 +42,9 @@ class UserResponse {
   user?: User;
 }
 
-export { UsernamePasswordInputResolver, FieldError, UserResponse };
+export {
+  UsernameOrEmailPasswordInputResolver,
+  UsernameEmailPasswordInputResolver,
+  FieldError,
+  UserResponse,
+};
