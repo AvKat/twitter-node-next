@@ -9,7 +9,7 @@ import { HelloResolver } from "./resolvers/hello";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/userResolver";
-import { createClient } from "redis";
+import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import { EmContext } from "./types";
@@ -29,14 +29,13 @@ const main = async () => {
   );
 
   const RedisStore = connectRedis(session);
-  const redisClient = createClient({ legacyMode: true });
-  redisClient.connect().catch(console.log);
+  const redis = new Redis();
 
   app.use(
     session({
       name: COOKIE_NAME,
       store: new RedisStore({
-        client: redisClient,
+        client: redis,
         disableTouch: true,
       }),
       cookie: {
@@ -59,6 +58,7 @@ const main = async () => {
       em: orm.em.fork(),
       req,
       res,
+      redis,
     }),
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
   });

@@ -1,8 +1,11 @@
+import { capitalize } from "..";
+
 enum Fields {
   username = "username",
   email = "email",
   usernameOrEmail = "usernameOrEmail",
   password = "password",
+  token = "token",
 }
 
 export const validationErrors = {
@@ -39,8 +42,14 @@ export const validationErrors = {
       message: "Incorrect password",
     },
   },
-  length: (field: string, min: number) => ({
+  token: {
+    invalid: {
+      field: Fields.token,
+      message: "Invalid token",
+    },
+  },
+  length: (field: string, min: number, name?: string) => ({
     field,
-    message: `${field} must be more than ${min} characters`,
+    message: `${capitalize(name || field)} must be more than ${min} characters`,
   }),
 } as const;

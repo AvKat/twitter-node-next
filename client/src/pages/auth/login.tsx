@@ -1,7 +1,8 @@
-import { Box, Button, Flex } from "@chakra-ui/react";
+import { Box, Button, Flex, Link } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { InputField } from "../../components/InputField";
 import { Wrapper } from "../../components/Wrapper";
@@ -36,15 +37,18 @@ const Login: NextPage = () => {
                 inputProps={{ type: "password" }}
               />
             </Box>
-            <Flex justifyContent={"center"}>
+            <Flex alignItems={"center"} flexDirection="column">
               <Button
                 type="submit"
                 bgColor={"tan"}
-                mt={4}
+                my={4}
                 isLoading={isSubmitting}
               >
                 Login
               </Button>
+              <NextLink href={"/forgot-password"}>
+                <Link>Forgot Password?</Link>
+              </NextLink>
             </Flex>
           </Form>
         )}

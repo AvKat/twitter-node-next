@@ -6,9 +6,11 @@ import {
   UserResponse,
   UsernameOrEmailPasswordInputResolver,
   UsernameEmailPasswordInputResolver,
+  TokenPasswordInput,
 } from "./_helpers";
 import {
   COOKIE_NAME,
+  FORGET_PASSWORD_PREFIX,
   MIN_PASSWORD_LENGTH,
   MIN_USERNAME_LENGTH,
 } from "../constants";
@@ -19,6 +21,8 @@ import {
   usernameValidator,
 } from "../utils/validation/validators";
 import { validationErrors } from "../utils/validation/errors";
+import { sendEmail } from "../utils/sendEmails";
+import { v4 } from "uuid";
 
 @Resolver()
 export class UserResolver {
@@ -123,5 +127,57 @@ export class UserResolver {
         resolve(true);
       });
     });
+  }
+
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: EmContext
+  ): Promise<boolean> {
+    const user = await em.findOne(User, { email });
+    if (!user) {
+      // Not email. Returns true to prevent random attacks
+      return true;
+    }
+
+    const token = v4();
+
+    redis.set(FORGET_PASSWORD_PREFIX + token, user.id, "EX", 1000 * 3600 * 24);
+
+    sendEmail(
+      email,
+      `<a href="http://localhost:3000/forgot-password/${token}">Reset Password</a>`
+    );
+    return true;
+  }
+
+  @Mutation(() => UserResponse)
+  async changePasswordFromToken(
+    @Arg("options") { token, newPassword }: TokenPasswordInput,
+    @Ctx() { em, redis, req }: EmContext
+  ): Promise<UserResponse> {
+    const passwordErrors = validateField(newPassword, [
+      lengthValidator(MIN_PASSWORD_LENGTH, "newPassword", "password"),
+    ]);
+    if (passwordErrors.length > 0) {
+      return { errors: passwordErrors };
+    }
+
+    const redis_key = FORGET_PASSWORD_PREFIX + token;
+    const userId = await redis.get(redis_key);
+    if (!userId) {
+      return { errors: [validationErrors.token.invalid] };
+    }
+
+    const user = await em.findOne(User, { id: parseInt(userId) });
+    if (!user) return { errors: [validationErrors.token.invalid] };
+
+    user.password = await argon2.hash(newPassword);
+    await em.persistAndFlush(user);
+
+    await redis.del(redis_key);
+    req.session.userId = user.id;
+
+    return { user };
   }
 }

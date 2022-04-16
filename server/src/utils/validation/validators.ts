@@ -25,10 +25,13 @@ export const usernameValidator: Validator = (username: string) => {
   return null;
 };
 
-export const lengthValidator: (length: number, field: string) => Validator =
-  (length, field) => (value: string) => {
-    if (value.length < length) {
-      return validationErrors.length(field, length);
-    }
-    return null;
-  };
+export const lengthValidator: (
+  length: number,
+  field: string,
+  name?: string
+) => Validator = (length, field, name) => (value: string) => {
+  if (value.length < length) {
+    return validationErrors.length(field, length, name);
+  }
+  return null;
+};

@@ -30,7 +30,11 @@ const Register: NextPage = () => {
           <Form>
             <InputField label="Username" name="username" />
             <Box mt={8}>
-              <InputField label="Email" name="email" />
+              <InputField
+                label="Email"
+                name="email"
+                inputProps={{ type: "email" }}
+              />
             </Box>
             <Box mt={8}>
               <InputField

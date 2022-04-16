@@ -25,6 +25,15 @@ class UsernameEmailPasswordInputResolver {
   password: string;
 }
 
+@InputType()
+class TokenPasswordInput {
+  @Field()
+  token: string;
+
+  @Field()
+  newPassword: string;
+}
+
 @ObjectType()
 class FieldError {
   @Field()
@@ -47,4 +56,5 @@ export {
   UsernameEmailPasswordInputResolver,
   FieldError,
   UserResponse,
+  TokenPasswordInput,
 };
