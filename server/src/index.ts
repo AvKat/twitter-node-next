@@ -10,7 +10,7 @@ import { UserResolver } from "./resolvers/userResolver";
 import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
-import { EmContext } from "./types";
+import { AppContext } from "./types";
 import cors from "cors";
 import { DataSource } from "typeorm";
 import { typeOrmConfig } from "./type-orm.config";
@@ -54,7 +54,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }): EmContext => ({
+    context: ({ req, res }): AppContext => ({
       req,
       res,
       redis,

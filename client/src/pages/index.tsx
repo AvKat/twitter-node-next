@@ -1,10 +1,11 @@
 import { Box, List, ListItem } from "@chakra-ui/react";
+import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
 import { Navbar } from "../components/Navbar";
 import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/urqlCacheExchangeUpdates";
 
-const Index = () => {
+const Index: NextPage = ({}) => {
   const [{ data }] = usePostsQuery();
 
   return (

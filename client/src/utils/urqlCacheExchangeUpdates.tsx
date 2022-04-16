@@ -15,6 +15,7 @@ import {
   MeDocument,
   RegisterMutation,
   LogoutMutation,
+  ChangePasswordFromTokenMutation,
 } from "../generated/graphql";
 
 function betterUpdateQuery<Res, Query>(
@@ -67,6 +68,28 @@ const register: UrqlMutationUpdaterType = (_result, _args, cache, _info) => {
   );
 };
 
+const changePasswordFromToken: UrqlMutationUpdaterType = (
+  _result,
+  _args,
+  cache,
+  _info
+) => {
+  betterUpdateQuery<ChangePasswordFromTokenMutation, MeQuery>(
+    cache,
+    { query: MeDocument },
+    _result,
+    (result, query) => {
+      if (result.changePasswordFromToken.errors) {
+        return query;
+      } else {
+        return {
+          me: result.changePasswordFromToken.user,
+        };
+      }
+    }
+  );
+};
+
 const logout: UrqlMutationUpdaterType = (_result, _args, cache, _info) => {
   betterUpdateQuery<LogoutMutation, MeQuery>(
     cache,
@@ -81,6 +104,7 @@ const urqlCacheExchangeUpdates: Partial<UpdatesConfig> = {
     login,
     register,
     logout,
+    changePasswordFromToken,
   },
 };
 

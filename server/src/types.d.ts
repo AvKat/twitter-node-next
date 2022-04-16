@@ -6,7 +6,7 @@ export type SessionDataType = {
   userId?: number;
 };
 
-export type EmContext = {
+export type AppContext = {
   req: Request & { session: Session & SessionDataType };
   res: Response;
   redis: Redis;

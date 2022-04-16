@@ -108,4 +108,6 @@ ForgotPasssword.getInitialProps = ({ query }) => {
   };
 };
 
-export default withUrqlClient(createUrqlClient)(ForgotPasssword);
+export default withUrqlClient(createUrqlClient, { neverSuspend: true })(
+  ForgotPasssword
+);

@@ -1,5 +1,5 @@
 import { User } from "../entities/User";
-import { EmContext } from "../types";
+import { AppContext } from "../types";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import argon2 from "argon2";
 import {
@@ -28,7 +28,7 @@ import { v4 } from "uuid";
 @Resolver()
 export class UserResolver {
   @Query(() => User, { nullable: true })
-  async me(@Ctx() { req }: EmContext): Promise<User | null> {
+  async me(@Ctx() { req }: AppContext): Promise<User | null> {
     if (!req.session.userId) {
       return null;
     }
@@ -38,7 +38,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") opts: UsernameEmailPasswordInputResolver,
-    @Ctx() { req }: EmContext
+    @Ctx() { req }: AppContext
   ): Promise<UserResponse> {
     const usernameErrors = validateField(opts.username, [
       usernameValidator,
@@ -80,7 +80,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(
     @Arg("options") opts: UsernameOrEmailPasswordInputResolver,
-    @Ctx() { req }: EmContext
+    @Ctx() { req }: AppContext
   ): Promise<UserResponse> {
     const isEmail = opts.usernameOrEmail.includes("@");
     const validators = isEmail
@@ -114,7 +114,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async logout(@Ctx() { req, res }: EmContext): Promise<boolean> {
+  async logout(@Ctx() { req, res }: AppContext): Promise<boolean> {
     return new Promise((resolve) => {
       req.session.destroy((err) => {
         res.clearCookie(COOKIE_NAME);
@@ -132,7 +132,7 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async forgotPassword(
     @Arg("email") email: string,
-    @Ctx() { redis }: EmContext
+    @Ctx() { redis }: AppContext
   ): Promise<boolean> {
     const user = await User.findOneBy({ email });
     if (!user) {
@@ -156,7 +156,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async changePasswordFromToken(
     @Arg("options") { token, newPassword }: TokenPasswordInput,
-    @Ctx() { redis, req }: EmContext
+    @Ctx() { redis, req }: AppContext
   ): Promise<UserResponse> {
     const passwordErrors = validateField(newPassword, [
       lengthValidator(MIN_PASSWORD_LENGTH, "newPassword", "password"),

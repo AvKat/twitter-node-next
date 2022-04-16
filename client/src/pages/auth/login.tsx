@@ -46,7 +46,7 @@ const Login: NextPage = () => {
               >
                 Login
               </Button>
-              <NextLink href={"/forgot-password"}>
+              <NextLink href={"/auth/forgot-password"}>
                 <Link>Forgot Password?</Link>
               </NextLink>
             </Flex>
