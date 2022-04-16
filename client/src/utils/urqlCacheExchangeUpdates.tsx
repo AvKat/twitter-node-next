@@ -17,6 +17,7 @@ import {
   LogoutMutation,
   ChangePasswordFromTokenMutation,
 } from "../generated/graphql";
+import { errorExchange } from "./errorExchange";
 
 function betterUpdateQuery<Res, Query>(
   cache: Cache,
@@ -117,6 +118,7 @@ const createUrqlClient: NextUrqlClientConfig = (ssrExchange) => ({
     cacheExchange({
       updates: urqlCacheExchangeUpdates,
     }),
+    errorExchange,
     ssrExchange,
     fetchExchange,
   ],

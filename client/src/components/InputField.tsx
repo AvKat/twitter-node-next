@@ -3,21 +3,27 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Textarea,
 } from "@chakra-ui/react";
-import { FieldHookConfig, useField } from "formik";
-import React, { InputHTMLAttributes } from "react";
+import { useField } from "formik";
+import React, { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 
-type InputFieldProps = FieldHookConfig<string | number> & {
+type InputFieldProps = (
+  | InputHTMLAttributes<HTMLInputElement>
+  | TextareaHTMLAttributes<HTMLTextAreaElement>
+) & {
   label: string;
-  inputProps?: InputHTMLAttributes<HTMLInputElement>;
+  textarea?: boolean;
+  name: string;
 };
 
 const InputField: React.FC<InputFieldProps> = ({
   label,
-  inputProps,
+  textarea = false,
   ...props
 }) => {
   const [field, { error }] = useField(props);
+  const InputOrTextArea = textarea ? Textarea : Input;
   let placeholder = label;
 
   if (props.placeholder) {
@@ -27,9 +33,9 @@ const InputField: React.FC<InputFieldProps> = ({
   return (
     <FormControl isInvalid={!!error}>
       <FormLabel htmlFor={field.name}>{label}</FormLabel>
-      <Input
-        {...field}
-        {...inputProps}
+      <InputOrTextArea
+        {...(field as any)}
+        {...props}
         id={field.name}
         size="sm"
         placeholder={placeholder}

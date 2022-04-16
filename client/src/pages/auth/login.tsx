@@ -7,12 +7,16 @@ import { useRouter } from "next/router";
 import { InputField } from "../../components/InputField";
 import { Wrapper } from "../../components/Wrapper";
 import { useLoginMutation } from "../../generated/graphql";
+import { returnToHref } from "../../utils/returnToHref";
 import { toErrorMap } from "../../utils/toErrorMap";
 import { createUrqlClient } from "../../utils/urqlCacheExchangeUpdates";
 
 const Login: NextPage = () => {
   const [, login] = useLoginMutation();
   const router = useRouter();
+
+  const return_to = router.query.return_to;
+  const href = returnToHref("/auth/register", return_to);
 
   return (
     <Wrapper variant="small">
@@ -23,7 +27,7 @@ const Login: NextPage = () => {
           if (data?.login.errors) {
             setErrors(toErrorMap(data.login.errors));
           } else if (data?.login.user) {
-            router.push("/");
+            router.push(typeof return_to === "string" ? return_to : "/");
           }
         }}
       >
@@ -31,11 +35,7 @@ const Login: NextPage = () => {
           <Form>
             <InputField label="Username or Email" name="usernameOrEmail" />
             <Box mt={8}>
-              <InputField
-                label="Password"
-                name="password"
-                inputProps={{ type: "password" }}
-              />
+              <InputField label="Password" name="password" type="password" />
             </Box>
             <Flex alignItems={"center"} flexDirection="column">
               <Button
@@ -46,6 +46,9 @@ const Login: NextPage = () => {
               >
                 Login
               </Button>
+              <NextLink href={href}>
+                <Link>Create account</Link>
+              </NextLink>
               <NextLink href={"/auth/forgot-password"}>
                 <Link>Forgot Password?</Link>
               </NextLink>

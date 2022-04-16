@@ -47,11 +47,7 @@ const ForgotPassswordMain: NextPage = () => {
           {({ isSubmitting }) => (
             <Form>
               <Box mt={8}>
-                <InputField
-                  label="Email"
-                  name="email"
-                  inputProps={{ type: "email" }}
-                />
+                <InputField label="Email" name="email" type="email" />
               </Box>
               <Flex justifyContent={"center"}>
                 <Button

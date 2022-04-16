@@ -1,4 +1,4 @@
-import { Box, Button, Flex } from "@chakra-ui/react";
+import { Box, Button, Flex, Link } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
@@ -8,10 +8,15 @@ import { Wrapper } from "../../components/Wrapper";
 import { useRegisterMutation } from "../../generated/graphql";
 import { toErrorMap } from "../../utils/toErrorMap";
 import { createUrqlClient } from "../../utils/urqlCacheExchangeUpdates";
+import NextLink from "next/link";
+import { returnToHref } from "../../utils/returnToHref";
 
 const Register: NextPage = () => {
   const [, register] = useRegisterMutation();
   const router = useRouter();
+
+  const return_to = router.query.return_to;
+  const href = returnToHref("/auth/login", return_to);
 
   return (
     <Wrapper variant="small">
@@ -22,7 +27,7 @@ const Register: NextPage = () => {
           if (data?.register.errors) {
             setErrors(toErrorMap(data.register.errors));
           } else if (data?.register.user) {
-            router.push("/");
+            router.push(typeof return_to === "string" ? return_to : "/");
           }
         }}
       >
@@ -30,28 +35,24 @@ const Register: NextPage = () => {
           <Form>
             <InputField label="Username" name="username" />
             <Box mt={8}>
-              <InputField
-                label="Email"
-                name="email"
-                inputProps={{ type: "email" }}
-              />
+              <InputField label="Email" name="email" type="email" />
             </Box>
             <Box mt={8}>
-              <InputField
-                label="Password"
-                name="password"
-                inputProps={{ type: "password" }}
-              />
+              <InputField label="Password" name="password" type="password" />
             </Box>
-            <Flex justifyContent={"center"}>
+            <Flex alignItems={"center"} flexDirection="column">
               <Button
                 type="submit"
                 bgColor={"tan"}
-                mt={4}
+                my={6}
                 isLoading={isSubmitting}
               >
                 Register
               </Button>
+
+              <NextLink href={href}>
+                <Link>Already have an account?</Link>
+              </NextLink>
             </Flex>
           </Form>
         )}

@@ -1,17 +1,21 @@
-import { Box, List, ListItem } from "@chakra-ui/react";
+import { Button, List, ListItem } from "@chakra-ui/react";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
-import { Navbar } from "../components/Navbar";
 import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/urqlCacheExchangeUpdates";
+import NextLink from "next/link";
+import { LayoutWithNavbar } from "../components/LayoutWithNavbar";
 
 const Index: NextPage = ({}) => {
   const [{ data }] = usePostsQuery();
 
   return (
-    <>
-      <Navbar />
-      <Box>Hi</Box>
+    <LayoutWithNavbar>
+      <NextLink href={"/create-post"}>
+        <Button type="button" bgColor={"teal"} my={4} color="white">
+          Create Post
+        </Button>
+      </NextLink>
       <br />
       <List>
         {data &&
@@ -19,7 +23,7 @@ const Index: NextPage = ({}) => {
             <ListItem key={post.id}>{post.title}</ListItem>
           ))}
       </List>
-    </>
+    </LayoutWithNavbar>
   );
 };
 
