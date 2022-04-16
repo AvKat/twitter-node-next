@@ -1,7 +1,5 @@
 import "reflect-metadata";
-import { MikroORM } from "@mikro-orm/core";
 import { COOKIE_NAME, __prod__ } from "./constants";
-import mikroConf from "./mikro-orm.config";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
@@ -14,10 +12,12 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import { EmContext } from "./types";
 import cors from "cors";
+import { DataSource } from "typeorm";
+import { typeOrmConfig } from "./type-orm.config";
 
 const main = async () => {
-  const orm = await MikroORM.init(mikroConf);
-  await orm.getMigrator().up();
+  const dataSource = new DataSource(typeOrmConfig);
+  await dataSource.initialize();
 
   const app = express();
 
@@ -55,7 +55,6 @@ const main = async () => {
       validate: false,
     }),
     context: ({ req, res }): EmContext => ({
-      em: orm.em.fork(),
       req,
       res,
       redis,

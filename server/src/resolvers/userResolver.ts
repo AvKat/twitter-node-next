@@ -13,6 +13,7 @@ import {
   FORGET_PASSWORD_PREFIX,
   MIN_PASSWORD_LENGTH,
   MIN_USERNAME_LENGTH,
+  __prod__,
 } from "../constants";
 import { validateField } from "../utils/validation";
 import {
@@ -27,17 +28,17 @@ import { v4 } from "uuid";
 @Resolver()
 export class UserResolver {
   @Query(() => User, { nullable: true })
-  async me(@Ctx() { em, req }: EmContext): Promise<User | null> {
+  async me(@Ctx() { req }: EmContext): Promise<User | null> {
     if (!req.session.userId) {
       return null;
     }
-    return em.findOne(User, { id: req.session.userId });
+    return User.findOneBy({ id: req.session.userId });
   }
 
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") opts: UsernameEmailPasswordInputResolver,
-    @Ctx() { em, req }: EmContext
+    @Ctx() { req }: EmContext
   ): Promise<UserResponse> {
     const usernameErrors = validateField(opts.username, [
       usernameValidator,
@@ -53,17 +54,17 @@ export class UserResolver {
     if (errors.length > 0) return { errors };
 
     const hashedPassword = await argon2.hash(opts.password);
-    const user = em.create(User, {
+    const user = await User.create({
       username: opts.username,
       email: opts.email,
       password: hashedPassword,
     });
     try {
-      await em.persistAndFlush(user);
+      await user.save();
     } catch (e) {
       if (e.code === "23505") {
         let errors;
-        if (e.constraint.includes("email")) {
+        if (e.detail.includes("email")) {
           errors = [validationErrors.email.duplicate];
         } else {
           errors = [validationErrors.username.duplicate];
@@ -79,7 +80,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(
     @Arg("options") opts: UsernameOrEmailPasswordInputResolver,
-    @Ctx() { em, req }: EmContext
+    @Ctx() { req }: EmContext
   ): Promise<UserResponse> {
     const isEmail = opts.usernameOrEmail.includes("@");
     const validators = isEmail
@@ -89,8 +90,7 @@ export class UserResolver {
 
     if (errors.length > 0) return { errors };
 
-    const user = await em.findOne(
-      User,
+    const user = await User.findOneBy(
       isEmail
         ? { email: opts.usernameOrEmail }
         : { username: opts.usernameOrEmail }
@@ -132,29 +132,31 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async forgotPassword(
     @Arg("email") email: string,
-    @Ctx() { em, redis }: EmContext
+    @Ctx() { redis }: EmContext
   ): Promise<boolean> {
-    const user = await em.findOne(User, { email });
+    const user = await User.findOneBy({ email });
     if (!user) {
       // Not email. Returns true to prevent random attacks
       return true;
     }
 
     const token = v4();
+    const url = `http://localhost:3000/auth/forgot-password/${token}`;
 
     redis.set(FORGET_PASSWORD_PREFIX + token, user.id, "EX", 1000 * 3600 * 24);
 
-    sendEmail(
-      email,
-      `<a href="http://localhost:3000/forgot-password/${token}">Reset Password</a>`
-    );
+    if (__prod__) {
+      sendEmail(email, `<a href="${url}">Reset Password</a>`);
+    } else {
+      console.log(url);
+    }
     return true;
   }
 
   @Mutation(() => UserResponse)
   async changePasswordFromToken(
     @Arg("options") { token, newPassword }: TokenPasswordInput,
-    @Ctx() { em, redis, req }: EmContext
+    @Ctx() { redis, req }: EmContext
   ): Promise<UserResponse> {
     const passwordErrors = validateField(newPassword, [
       lengthValidator(MIN_PASSWORD_LENGTH, "newPassword", "password"),
@@ -169,11 +171,12 @@ export class UserResolver {
       return { errors: [validationErrors.token.invalid] };
     }
 
-    const user = await em.findOne(User, { id: parseInt(userId) });
+    const id = parseInt(userId);
+    const user = await User.findOneBy({ id });
     if (!user) return { errors: [validationErrors.token.invalid] };
 
-    user.password = await argon2.hash(newPassword);
-    await em.persistAndFlush(user);
+    const password = await argon2.hash(newPassword);
+    User.update({ id }, { password });
 
     await redis.del(redis_key);
     req.session.userId = user.id;
