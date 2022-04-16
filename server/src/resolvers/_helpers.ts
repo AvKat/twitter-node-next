@@ -1,4 +1,5 @@
 import { InputType, Field, ObjectType } from "type-graphql";
+import { Post } from "../entities/Post";
 import { User } from "../entities/User";
 
 /*
@@ -34,6 +35,15 @@ class TokenPasswordInput {
   newPassword: string;
 }
 
+@InputType()
+class PostInput {
+  @Field()
+  title: string;
+
+  @Field()
+  text: string;
+}
+
 @ObjectType()
 class FieldError {
   @Field()
@@ -51,10 +61,21 @@ class UserResponse {
   user?: User;
 }
 
+@ObjectType()
+class PostResponse {
+  @Field(() => [FieldError], { nullable: true })
+  errors?: FieldError[];
+
+  @Field(() => Post, { nullable: true })
+  post?: Post;
+}
+
 export {
   UsernameOrEmailPasswordInputResolver,
   UsernameEmailPasswordInputResolver,
   FieldError,
+  PostInput,
+  PostResponse,
   UserResponse,
   TokenPasswordInput,
 };

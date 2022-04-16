@@ -24,7 +24,7 @@ export type FieldError = {
 export type Mutation = {
   __typename?: 'Mutation';
   changePasswordFromToken: UserResponse;
-  createPost: Post;
+  createPost: PostResponse;
   deletePost: Scalars['Boolean'];
   forgotPassword: Scalars['Boolean'];
   login: UserResponse;
@@ -40,7 +40,7 @@ export type MutationChangePasswordFromTokenArgs = {
 
 
 export type MutationCreatePostArgs = {
-  title: Scalars['String'];
+  input: PostInput;
 };
 
 
@@ -71,10 +71,24 @@ export type MutationUpdatePostArgs = {
 
 export type Post = {
   __typename?: 'Post';
+  authorId: Scalars['Float'];
   createdAt: Scalars['String'];
   id: Scalars['Float'];
+  points: Scalars['Float'];
+  text: Scalars['String'];
   title: Scalars['String'];
   updatedAt: Scalars['String'];
+};
+
+export type PostInput = {
+  text: Scalars['String'];
+  title: Scalars['String'];
+};
+
+export type PostResponse = {
+  __typename?: 'PostResponse';
+  errors?: Maybe<Array<FieldError>>;
+  post?: Maybe<Post>;
 };
 
 export type Query = {
@@ -121,6 +135,12 @@ export type UsernameOrEmailPasswordInputResolver = {
   usernameOrEmail: Scalars['String'];
 };
 
+export type RequiredErrorFieldsFragment = { __typename?: 'FieldError', field: string, message: string };
+
+export type RequiredPostFieldsFragment = { __typename?: 'Post', id: number, title: string, text: string, points: number, authorId: number };
+
+export type RequiredPostResponseFragment = { __typename?: 'PostResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, post?: { __typename?: 'Post', id: number, title: string, text: string, points: number, authorId: number } | null };
+
 export type RequiredUserFieldsFragment = { __typename?: 'User', id: number, username: string, email: string };
 
 export type RequiredUserResponseFragment = { __typename?: 'UserResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, user?: { __typename?: 'User', id: number, username: string, email: string } | null };
@@ -162,6 +182,14 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, user?: { __typename?: 'User', id: number, username: string, email: string } | null } };
 
+export type CreatePostMutationVariables = Exact<{
+  title: Scalars['String'];
+  text: Scalars['String'];
+}>;
+
+
+export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'PostResponse', post?: { __typename?: 'Post', id: number, title: string, text: string, authorId: number } | null, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -172,6 +200,32 @@ export type PostsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type PostsQuery = { __typename?: 'Query', posts: Array<{ __typename?: 'Post', id: number, title: string }> };
 
+export const RequiredErrorFieldsFragmentDoc = gql`
+    fragment RequiredErrorFields on FieldError {
+  field
+  message
+}
+    `;
+export const RequiredPostFieldsFragmentDoc = gql`
+    fragment RequiredPostFields on Post {
+  id
+  title
+  text
+  points
+  authorId
+}
+    `;
+export const RequiredPostResponseFragmentDoc = gql`
+    fragment RequiredPostResponse on PostResponse {
+  errors {
+    ...RequiredErrorFields
+  }
+  post {
+    ...RequiredPostFields
+  }
+}
+    ${RequiredErrorFieldsFragmentDoc}
+${RequiredPostFieldsFragmentDoc}`;
 export const RequiredUserFieldsFragmentDoc = gql`
     fragment RequiredUserFields on User {
   id
@@ -182,14 +236,14 @@ export const RequiredUserFieldsFragmentDoc = gql`
 export const RequiredUserResponseFragmentDoc = gql`
     fragment RequiredUserResponse on UserResponse {
   errors {
-    field
-    message
+    ...RequiredErrorFields
   }
   user {
     ...RequiredUserFields
   }
 }
-    ${RequiredUserFieldsFragmentDoc}`;
+    ${RequiredErrorFieldsFragmentDoc}
+${RequiredUserFieldsFragmentDoc}`;
 export const ChangePasswordFromTokenDocument = gql`
     mutation ChangePasswordFromToken($token: String!, $newPassword: String!) {
   changePasswordFromToken(options: {token: $token, newPassword: $newPassword}) {
@@ -240,6 +294,26 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const CreatePostDocument = gql`
+    mutation CreatePost($title: String!, $text: String!) {
+  createPost(input: {title: $title, text: $text}) {
+    post {
+      id
+      title
+      text
+      authorId
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+    `;
+
+export function useCreatePostMutation() {
+  return Urql.useMutation<CreatePostMutation, CreatePostMutationVariables>(CreatePostDocument);
 };
 export const MeDocument = gql`
     query Me {

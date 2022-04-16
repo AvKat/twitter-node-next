@@ -1,7 +1,6 @@
 fragment RequiredUserResponse on UserResponse {
   errors {
-    field
-    message
+    ...RequiredErrorFields
   }
   user {
     ...RequiredUserFields

@@ -1,0 +1,4 @@
+fragment RequiredErrorFields on FieldError {
+  field
+  message
+}

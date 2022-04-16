@@ -1,0 +1,8 @@
+fragment RequiredPostResponse on PostResponse {
+  errors {
+    ...RequiredErrorFields
+  }
+  post {
+    ...RequiredPostFields
+  }
+}

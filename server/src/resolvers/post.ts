@@ -1,5 +1,17 @@
 import { Post } from "../entities/Post";
-import { Arg, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from "type-graphql";
+import { isAuth } from "../utils/isAuth";
+import { PostInput, PostResponse } from "./_helpers";
+import { AppContext } from "../types";
+import { validateField } from "../utils/validation";
+import { lengthValidator } from "../utils/validation/validators";
 
 @Resolver()
 export class PostResolver {
@@ -13,12 +25,31 @@ export class PostResolver {
     return Post.findOneBy({ id });
   }
 
-  @Mutation(() => Post)
-  async createPost(@Arg("title") title: string): Promise<Post> {
-    return Post.create({ title }).save();
+  @Mutation(() => PostResponse)
+  @UseMiddleware(isAuth)
+  async createPost(
+    @Arg("input") input: PostInput,
+    @Ctx() { req }: AppContext
+  ): Promise<PostResponse> {
+    const titleErrors = validateField(input.title, [
+      lengthValidator(5, "title"),
+    ]);
+    const textErrors = validateField(input.text, [lengthValidator(15, "text")]);
+    const errors = [...titleErrors, ...textErrors];
+
+    if (errors.length > 0) {
+      return { errors };
+    }
+
+    const post = await Post.create({
+      ...input,
+      authorId: req.session.userId,
+    }).save();
+    return { post };
   }
 
   @Mutation(() => Post, { nullable: true })
+  @UseMiddleware(isAuth)
   async updatePost(
     @Arg("id") id: number,
     @Arg("title", () => String, { nullable: true }) title?: string
@@ -34,6 +65,7 @@ export class PostResolver {
   }
 
   @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
   async deletePost(@Arg("id") id: number): Promise<boolean> {
     try {
       Post.delete({ id });
