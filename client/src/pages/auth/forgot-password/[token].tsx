@@ -46,7 +46,6 @@ const ForgotPasssword: NextPage = () => {
             });
             if (data?.changePasswordFromToken.errors) {
               const errorMap = toErrorMap(data.changePasswordFromToken.errors);
-              console.log(errorMap);
               if (errorMap.token) {
                 setTokenErr(errorMap.token);
               }

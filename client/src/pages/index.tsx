@@ -1,28 +1,42 @@
-import { Button, List, ListItem } from "@chakra-ui/react";
+import { Box, Button, Heading, Text, Stack, Flex } from "@chakra-ui/react";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
-import { usePostsQuery } from "../generated/graphql";
+import { PostsQueryVariables, usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/urqlCacheExchangeUpdates";
-import NextLink from "next/link";
 import { LayoutWithNavbar } from "../components/LayoutWithNavbar";
+import { useState } from "react";
 
 const Index: NextPage = ({}) => {
-  const [{ data }] = usePostsQuery();
+  const [variables, setVariables] = useState<PostsQueryVariables>({
+    limit: 10,
+  });
+  const [{ data, fetching }] = usePostsQuery({ variables });
+  const posts = data?.posts.posts || [];
+
+  const fetchMorePosts = () => {
+    const cursor = posts[posts.length - 1].createdAt;
+    setVariables({ limit: 10, cursor });
+  };
 
   return (
     <LayoutWithNavbar>
-      <NextLink href={"/create-post"}>
-        <Button type="button" bgColor={"teal"} my={4} color="white">
-          Create Post
-        </Button>
-      </NextLink>
       <br />
-      <List>
+      <Stack spacing={5}>
         {data &&
-          data.posts.map((post) => (
-            <ListItem key={post.id}>{post.title}</ListItem>
+          posts.map((post) => (
+            <Box p={5} shadow="md" borderWidth="1px" key={post.id}>
+              <Heading fontSize="xl">{post.title}</Heading>
+              <Text my={5}>{post.textSnippet}</Text>
+            </Box>
           ))}
-      </List>
+      </Stack>
+      {data && !fetching && data.posts.hasMore && (
+        <Flex my={8}>
+          <Button onClick={fetchMorePosts} m="auto">
+            Load More
+          </Button>
+        </Flex>
+      )}
     </LayoutWithNavbar>
   );
 };

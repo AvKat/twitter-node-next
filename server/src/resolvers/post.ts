@@ -2,22 +2,51 @@ import { Post } from "../entities/Post";
 import {
   Arg,
   Ctx,
+  FieldResolver,
+  Int,
   Mutation,
   Query,
   Resolver,
+  Root,
   UseMiddleware,
 } from "type-graphql";
 import { isAuth } from "../utils/isAuth";
-import { PostInput, PostResponse } from "./_helpers";
+import { PostInput, PostsResponse, PostMutationResponse } from "./_helpers";
 import { AppContext } from "../types";
 import { validateField } from "../utils/validation";
 import { lengthValidator } from "../utils/validation/validators";
+import { LessThan } from "typeorm";
 
-@Resolver()
+@Resolver(() => Post)
 export class PostResolver {
-  @Query(() => [Post])
-  posts(): Promise<Post[]> {
-    return Post.find();
+  @FieldResolver(() => String)
+  textSnippet(@Root() post: Post) {
+    return post.text.slice(0, 50);
+  }
+
+  @Query(() => PostsResponse)
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", { nullable: true }) cursor?: string
+  ): Promise<PostsResponse> {
+    const realLimit = Math.min(50, limit);
+    const realLimitPlusOne = realLimit + 1;
+
+    let minWhere = null;
+    if (cursor) {
+      minWhere = new Date(parseInt(cursor));
+    }
+
+    const posts = await Post.find({
+      where: minWhere ? { createdAt: LessThan(minWhere) } : {},
+      take: realLimitPlusOne,
+      order: {
+        createdAt: "DESC",
+      },
+    });
+
+    const hasMore = posts.length === realLimitPlusOne;
+    return { hasMore, posts: posts.slice(0, realLimit) };
   }
 
   @Query(() => Post, { nullable: true })
@@ -25,12 +54,12 @@ export class PostResolver {
     return Post.findOneBy({ id });
   }
 
-  @Mutation(() => PostResponse)
+  @Mutation(() => PostMutationResponse)
   @UseMiddleware(isAuth)
   async createPost(
     @Arg("input") input: PostInput,
     @Ctx() { req }: AppContext
-  ): Promise<PostResponse> {
+  ): Promise<PostMutationResponse> {
     const titleErrors = validateField(input.title, [
       lengthValidator(5, "title"),
     ]);

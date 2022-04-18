@@ -1,0 +1,8 @@
+fragment PostsFields on Post {
+  id
+  title
+  textSnippet
+  points
+  authorId
+  createdAt
+}

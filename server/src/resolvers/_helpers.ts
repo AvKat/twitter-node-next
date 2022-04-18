@@ -62,7 +62,7 @@ class UserResponse {
 }
 
 @ObjectType()
-class PostResponse {
+class PostMutationResponse {
   @Field(() => [FieldError], { nullable: true })
   errors?: FieldError[];
 
@@ -70,12 +70,22 @@ class PostResponse {
   post?: Post;
 }
 
+@ObjectType()
+class PostsResponse {
+  @Field(() => Boolean)
+  hasMore: boolean;
+
+  @Field(() => [Post])
+  posts: Post[];
+}
+
 export {
   UsernameOrEmailPasswordInputResolver,
   UsernameEmailPasswordInputResolver,
   FieldError,
   PostInput,
-  PostResponse,
+  PostsResponse,
+  PostMutationResponse,
   UserResponse,
   TokenPasswordInput,
 };

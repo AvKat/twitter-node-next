@@ -18,6 +18,7 @@ import {
   ChangePasswordFromTokenMutation,
 } from "../generated/graphql";
 import { errorExchange } from "./errorExchange";
+import { urqlCacheQueryResolvers } from "./urqlCacheQueryResolvers";
 
 function betterUpdateQuery<Res, Query>(
   cache: Cache,
@@ -116,7 +117,11 @@ const createUrqlClient: NextUrqlClientConfig = (ssrExchange) => ({
   exchanges: [
     dedupExchange,
     cacheExchange({
+      keys: {
+        PostsResponse: () => null,
+      },
       updates: urqlCacheExchangeUpdates,
+      resolvers: urqlCacheQueryResolvers,
     }),
     errorExchange,
     ssrExchange,

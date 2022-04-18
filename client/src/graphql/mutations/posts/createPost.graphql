@@ -1,14 +1,5 @@
 mutation CreatePost($title: String!, $text: String!) {
   createPost(input: { title: $title, text: $text }) {
-    post {
-      id
-      title
-      text
-      authorId
-    }
-    errors {
-      field
-      message
-    }
+    ...PostMutationResponse
   }
 }

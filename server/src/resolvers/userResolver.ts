@@ -40,7 +40,8 @@ export class UserResolver {
     @Arg("options") opts: UsernameEmailPasswordInputResolver,
     @Ctx() { req }: AppContext
   ): Promise<UserResponse> {
-    const usernameErrors = validateField(opts.username, [
+    const userName = opts.username.toLowerCase();
+    const usernameErrors = validateField(userName, [
       usernameValidator,
       lengthValidator(MIN_USERNAME_LENGTH, "username"),
     ]);
@@ -55,7 +56,7 @@ export class UserResolver {
 
     const hashedPassword = await argon2.hash(opts.password);
     const user = await User.create({
-      username: opts.username,
+      username: userName,
       email: opts.email,
       password: hashedPassword,
     });
@@ -82,18 +83,17 @@ export class UserResolver {
     @Arg("options") opts: UsernameOrEmailPasswordInputResolver,
     @Ctx() { req }: AppContext
   ): Promise<UserResponse> {
-    const isEmail = opts.usernameOrEmail.includes("@");
+    const uOre = opts.usernameOrEmail.toLowerCase();
+    const isEmail = uOre.includes("@");
     const validators = isEmail
       ? [emailValidator]
       : [lengthValidator(MIN_USERNAME_LENGTH, "username")];
-    const errors = validateField(opts.usernameOrEmail, validators);
+    const errors = validateField(uOre, validators);
 
     if (errors.length > 0) return { errors };
 
     const user = await User.findOneBy(
-      isEmail
-        ? { email: opts.usernameOrEmail }
-        : { username: opts.usernameOrEmail }
+      isEmail ? { email: uOre } : { username: uOre }
     );
     if (!user) {
       return {
@@ -120,7 +120,6 @@ export class UserResolver {
         res.clearCookie(COOKIE_NAME);
         if (err) {
           resolve(false);
-          console.log(err);
           return;
         }
 
@@ -131,9 +130,10 @@ export class UserResolver {
 
   @Mutation(() => Boolean)
   async forgotPassword(
-    @Arg("email") email: string,
+    @Arg("email") iemail: string,
     @Ctx() { redis }: AppContext
   ): Promise<boolean> {
+    const email = iemail.toLowerCase();
     const user = await User.findOneBy({ email });
     if (!user) {
       // Not email. Returns true to prevent random attacks

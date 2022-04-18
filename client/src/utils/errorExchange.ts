@@ -8,7 +8,6 @@ const errorExchange: Exchange =
     return pipe(
       forward(ops$),
       tap(({ error }) => {
-        console.log(error);
         if (error?.message.toLowerCase().includes("not authenticated")) {
           Router.replace("/auth/login");
         }

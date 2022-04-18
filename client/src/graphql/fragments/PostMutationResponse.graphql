@@ -1,0 +1,8 @@
+fragment PostMutationResponse on PostMutationResponse {
+  errors {
+    ...RequiredErrorFields
+  }
+  post {
+    ...SinglePostFields
+  }
+}

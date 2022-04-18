@@ -1,7 +1,0 @@
-fragment RequiredPostFields on Post {
-  id
-  title
-  text
-  points
-  authorId
-}

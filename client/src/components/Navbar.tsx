@@ -42,11 +42,19 @@ const Navbar: React.FC<NavbarProps> = ({}) => {
             </>
           ) : (
             <Flex>
-              <Box mr={3}>{data.me.username}</Box>
+              <Box fontWeight={"bold"}>{data.me.username}</Box>
+              <Box mx={5}>
+                <NextLink href={"/create-post"}>
+                  <Link variant={"link"} fontWeight="semibold">
+                    Create Post
+                  </Link>
+                </NextLink>
+              </Box>
               <Button
                 variant={"link"}
                 onClick={() => logout()}
                 isLoading={logoutFetching}
+                color="black"
               >
                 Logout
               </Button>
