@@ -1,0 +1,3 @@
+mutation Unvote($postId: Int!) {
+  unvote(postId: $postId)
+}

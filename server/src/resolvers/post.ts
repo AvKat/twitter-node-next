@@ -15,7 +15,6 @@ import { PostInput, PostsResponse, PostMutationResponse } from "./_helpers";
 import { AppContext } from "../types";
 import { validateField } from "../utils/validation";
 import { lengthValidator } from "../utils/validation/validators";
-import { LessThan } from "typeorm";
 
 @Resolver(() => Post)
 export class PostResolver {
@@ -27,27 +26,49 @@ export class PostResolver {
   @Query(() => PostsResponse)
   async posts(
     @Arg("limit", () => Int) limit: number,
+    @Ctx() { req }: AppContext,
     @Arg("cursor", { nullable: true }) cursor?: string
   ): Promise<PostsResponse> {
     const realLimit = Math.min(50, limit);
     const realLimitPlusOne = realLimit + 1;
+    const { userId } = req.session;
 
-    let minWhere = null;
-    if (cursor) {
-      minWhere = new Date(parseInt(cursor));
+    const replacements: any[] = [realLimitPlusOne];
+
+    if (userId) {
+      replacements.push(userId);
     }
 
-    const posts = await Post.find({
-      where: minWhere ? { createdAt: LessThan(minWhere) } : {},
-      // Using this because all properties of user are fetched. Switch to qb if the case changes
-      relations: {
-        author: true,
-      },
-      take: realLimitPlusOne,
-      order: {
-        createdAt: "DESC",
-      },
-    });
+    if (cursor) {
+      if (!userId) {
+        replacements.push(userId);
+      }
+      replacements.push(new Date(parseInt(cursor)));
+    }
+
+    const posts = await Post.query(
+      `
+      SELECT p.*,
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'email', u.email,
+        '"createdAt"', u."createdAt",
+        '"updatedAt"', u."updatedAt"
+      ) author,
+      ${
+        userId
+          ? `(SELECT value FROM updoot WHERE "authorId" = $2 AND "postId" = p.id) "voteStatus"`
+          : 'null as "voteStatus"'
+      }
+      FROM post p
+      INNER JOIN public.user u on u.id = p."authorId"
+      ${cursor ? 'WHERE p."createdAt" < $3' : ""}
+      ORDER BY p."createdAt" DESC
+      LIMIT $1
+    `,
+      replacements
+    );
 
     const hasMore = posts.length === realLimitPlusOne;
     return { hasMore, posts: posts.slice(0, realLimit) };

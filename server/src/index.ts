@@ -12,12 +12,11 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import { AppContext } from "./types";
 import cors from "cors";
-import { DataSource } from "typeorm";
-import { typeOrmConfig } from "./type-orm.config";
+import { AppDataSource } from "./DataSource";
+import { UpdootResolver } from "./resolvers/updootResolver";
 
 const main = async () => {
-  const dataSource = new DataSource(typeOrmConfig);
-  await dataSource.initialize();
+  await AppDataSource.initialize();
 
   const app = express();
 
@@ -51,7 +50,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver, PostResolver, UserResolver],
+      resolvers: [HelloResolver, PostResolver, UserResolver, UpdootResolver],
       validate: false,
     }),
     context: ({ req, res }): AppContext => ({

@@ -3,8 +3,8 @@ fragment PostsFields on Post {
   title
   textSnippet
   points
-  authorId
   createdAt
+  voteStatus
   author {
     id
     username
