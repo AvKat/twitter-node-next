@@ -20,7 +20,7 @@ import { InputField } from "../../../components/InputField";
 import { Wrapper } from "../../../components/Wrapper";
 import { useChangePasswordFromTokenMutation } from "../../../generated/graphql";
 import { toErrorMap } from "../../../utils/toErrorMap";
-import { createUrqlClient } from "../../../utils/urqlCacheExchangeUpdates";
+import { createUrqlClient } from "../../../utils/urql";
 
 const ForgotPasssword: NextPage = () => {
   const [_, changePassword] = useChangePasswordFromTokenMutation();

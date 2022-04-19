@@ -18,7 +18,7 @@ import { useRouter } from "next/router";
 import { InputField } from "../../../components/InputField";
 import { Wrapper } from "../../../components/Wrapper";
 import { useForgotPasswordMutation } from "../../../generated/graphql";
-import { createUrqlClient } from "../../../utils/urqlCacheExchangeUpdates";
+import { createUrqlClient } from "../../../utils/urql";
 
 const ForgotPassswordMain: NextPage = () => {
   const [, forgotPassword] = useForgotPasswordMutation();

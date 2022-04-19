@@ -2,9 +2,9 @@ import { Box, Button, Heading, Text, Stack, Flex } from "@chakra-ui/react";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
 import { PostsQueryVariables, usePostsQuery } from "../generated/graphql";
-import { createUrqlClient } from "../utils/urqlCacheExchangeUpdates";
 import { LayoutWithNavbar } from "../components/LayoutWithNavbar";
 import { useState } from "react";
+import { createUrqlClient } from "../utils/urql";
 
 const Index: NextPage = ({}) => {
   const [variables, setVariables] = useState<PostsQueryVariables>({
@@ -15,7 +15,11 @@ const Index: NextPage = ({}) => {
 
   const fetchMorePosts = () => {
     const cursor = posts[posts.length - 1].createdAt;
-    setVariables({ limit: 10, cursor });
+    setVariables((v) => ({ limit: v.limit, cursor }));
+  };
+
+  const evalSnippet = (snippet: string) => {
+    return snippet.length === 50 ? `${snippet} ...` : snippet;
   };
 
   return (
@@ -26,7 +30,7 @@ const Index: NextPage = ({}) => {
           posts.map((post) => (
             <Box p={5} shadow="md" borderWidth="1px" key={post.id}>
               <Heading fontSize="xl">{post.title}</Heading>
-              <Text my={5}>{post.textSnippet}</Text>
+              <Text my={5}>{evalSnippet(post.textSnippet)}</Text>
             </Box>
           ))}
       </Stack>

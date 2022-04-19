@@ -9,7 +9,7 @@ import { Wrapper } from "../../components/Wrapper";
 import { useLoginMutation } from "../../generated/graphql";
 import { returnToHref } from "../../utils/returnToHref";
 import { toErrorMap } from "../../utils/toErrorMap";
-import { createUrqlClient } from "../../utils/urqlCacheExchangeUpdates";
+import { createUrqlClient } from "../../utils/urql";
 
 const Login: NextPage = () => {
   const [, login] = useLoginMutation();

@@ -1,6 +1,10 @@
 import { Resolver, ResolverConfig } from "@urql/exchange-graphcache";
 import { stringifyVariables } from "urql";
-import { Post, PostsQueryVariables, PostsResponse } from "../generated/graphql";
+import {
+  Post,
+  PostsQueryVariables,
+  PostsResponse,
+} from "../../generated/graphql";
 
 type DataFields = {
   posts: PostsResponse;

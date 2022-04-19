@@ -7,7 +7,7 @@ import { InputField } from "../components/InputField";
 import { LayoutWithNavbar } from "../components/LayoutWithNavbar";
 import { useCreatePostMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
-import { createUrqlClient } from "../utils/urqlCacheExchangeUpdates";
+import { createUrqlClient } from "../utils/urql";
 import { useAuthOnly } from "../utils/useAuthOnly";
 
 const CreatePost: NextPage = () => {
