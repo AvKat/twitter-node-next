@@ -5,4 +5,8 @@ fragment PostsFields on Post {
   points
   authorId
   createdAt
+  author {
+    id
+    username
+  }
 }

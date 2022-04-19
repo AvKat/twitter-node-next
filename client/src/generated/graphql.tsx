@@ -71,6 +71,7 @@ export type MutationUpdatePostArgs = {
 
 export type Post = {
   __typename?: 'Post';
+  author: User;
   authorId: Scalars['Float'];
   createdAt: Scalars['String'];
   id: Scalars['Float'];
@@ -150,7 +151,7 @@ export type UsernameOrEmailPasswordInputResolver = {
 
 export type PostMutationResponseFragment = { __typename?: 'PostMutationResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, post?: { __typename?: 'Post', id: number, title: string, text: string, points: number, authorId: number, createdAt: string } | null };
 
-export type PostsFieldsFragment = { __typename?: 'Post', id: number, title: string, textSnippet: string, points: number, authorId: number, createdAt: string };
+export type PostsFieldsFragment = { __typename?: 'Post', id: number, title: string, textSnippet: string, points: number, authorId: number, createdAt: string, author: { __typename?: 'User', id: number, username: string } };
 
 export type RequiredErrorFieldsFragment = { __typename?: 'FieldError', field: string, message: string };
 
@@ -216,7 +217,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMore: boolean, posts: Array<{ __typename?: 'Post', id: number, title: string, textSnippet: string, points: number, authorId: number, createdAt: string }> } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMore: boolean, posts: Array<{ __typename?: 'Post', id: number, title: string, textSnippet: string, points: number, authorId: number, createdAt: string, author: { __typename?: 'User', id: number, username: string } }> } };
 
 export const RequiredErrorFieldsFragmentDoc = gql`
     fragment RequiredErrorFields on FieldError {
@@ -253,6 +254,10 @@ export const PostsFieldsFragmentDoc = gql`
   points
   authorId
   createdAt
+  author {
+    id
+    username
+  }
 }
     `;
 export const RequiredUserFieldsFragmentDoc = gql`

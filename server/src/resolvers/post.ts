@@ -39,6 +39,10 @@ export class PostResolver {
 
     const posts = await Post.find({
       where: minWhere ? { createdAt: LessThan(minWhere) } : {},
+      // Using this because all properties of user are fetched. Switch to qb if the case changes
+      relations: {
+        author: true,
+      },
       take: realLimitPlusOne,
       order: {
         createdAt: "DESC",

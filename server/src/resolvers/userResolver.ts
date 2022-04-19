@@ -1,6 +1,14 @@
 import { User } from "../entities/User";
 import { AppContext } from "../types";
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  FieldResolver,
+  Mutation,
+  Query,
+  Resolver,
+  Root,
+} from "type-graphql";
 import argon2 from "argon2";
 import {
   UserResponse,
@@ -25,7 +33,7 @@ import { validationErrors } from "../utils/validation/errors";
 import { sendEmail } from "../utils/sendEmails";
 import { v4 } from "uuid";
 
-@Resolver()
+@Resolver(() => User)
 export class UserResolver {
   @Query(() => User, { nullable: true })
   async me(@Ctx() { req }: AppContext): Promise<User | null> {
@@ -33,6 +41,15 @@ export class UserResolver {
       return null;
     }
     return User.findOneBy({ id: req.session.userId });
+  }
+
+  @FieldResolver(() => String)
+  async email(@Ctx() { req }: AppContext, @Root() user: User): Promise<string> {
+    if (req.session.userId === user.id) {
+      return user.email;
+    }
+
+    return "";
   }
 
   @Mutation(() => UserResponse)

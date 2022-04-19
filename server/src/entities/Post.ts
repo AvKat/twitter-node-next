@@ -31,10 +31,11 @@ export class Post extends BaseEntity {
 
   @Field(() => Number)
   @Column({ type: "number" })
-  authorId: number;
+  authorId!: number;
 
+  @Field()
   @ManyToOne(() => User, (user) => user.posts)
-  author: User;
+  author!: User;
 
   @Field(() => String)
   @UpdateDateColumn()
