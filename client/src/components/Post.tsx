@@ -9,7 +9,7 @@ const Post: React.FC<PostProps> = (post) => {
     return snippet.length === 50 ? `${snippet} ...` : snippet;
   };
   return (
-    <Box p={5} shadow="md" borderWidth="1px" key={post.id}>
+    <Box p={5} shadow="md" borderWidth="1px">
       <Flex flex={1} mr={3}>
         <Heading fontSize="xl">{post.title}</Heading>
         <Text ml={"auto"} fontWeight="semibold">

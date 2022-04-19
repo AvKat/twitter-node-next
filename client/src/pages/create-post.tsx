@@ -21,7 +21,6 @@ const CreatePost: NextPage = () => {
         initialValues={{ title: "", text: "" }}
         onSubmit={async (val, { setErrors }) => {
           const { data } = await createPost(val);
-          console.log(data);
 
           if (data?.createPost.errors) {
             setErrors(toErrorMap(data.createPost.errors));

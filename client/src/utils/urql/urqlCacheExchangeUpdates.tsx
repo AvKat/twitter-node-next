@@ -61,12 +61,22 @@ const logout: UrqlMutationUpdaterType = (_result, _args, cache, _info) => {
   );
 };
 
+const createPost: UrqlMutationUpdaterType = (_result, _args, cache, _info) => {
+  const allFields = cache.inspectFields("Query");
+  const fieldInfos = allFields.filter((field) => field.fieldName === "posts");
+
+  fieldInfos.forEach((fi) => {
+    cache.invalidate("Query", fi.fieldKey);
+  });
+};
+
 const urqlCacheExchangeUpdates: Partial<UpdatesConfig> = {
   Mutation: {
     login: createMeQueryUpdater("login"),
     register: createMeQueryUpdater("register"),
     changePasswordFromToken: createMeQueryUpdater("changePasswordFromToken"),
     logout,
+    createPost,
   },
 };
 

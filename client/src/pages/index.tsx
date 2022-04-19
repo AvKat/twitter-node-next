@@ -7,14 +7,14 @@ import { useState } from "react";
 import { createUrqlClient } from "../utils/urql";
 import { Post } from "../components/Post";
 
-const Index: NextPage = ({}) => {
+const Index: NextPage = () => {
   const [variables, setVariables] = useState<PostsQueryVariables>({
     limit: 10,
   });
   const [{ data, fetching }] = usePostsQuery({ variables });
-  const posts = data?.posts.posts || [];
 
   const fetchMorePosts = () => {
+    const posts = data?.posts.posts || [];
     const cursor = posts[posts.length - 1].createdAt;
     setVariables((v) => ({ limit: v.limit, cursor }));
   };
@@ -23,7 +23,8 @@ const Index: NextPage = ({}) => {
     <LayoutWithNavbar>
       <br />
       <Stack spacing={5}>
-        {data && posts.map((post) => <Post {...post} />)}
+        {data?.posts &&
+          data.posts.posts.map((post) => <Post {...post} key={post.id} />)}
       </Stack>
       {data && !fetching && data.posts.hasMore && (
         <Flex my={8}>
