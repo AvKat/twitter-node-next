@@ -6,12 +6,15 @@ import {
   Variables,
   UpdatesConfig,
 } from "@urql/exchange-graphcache";
+import { gql } from "urql";
 import {
   MeQuery,
   MeDocument,
   LogoutMutation,
   UserResponse,
+  VoteMutationVariables,
 } from "../../generated/graphql";
+import { invalidatePosts } from "./_helpers";
 
 function betterUpdateQuery<Res, Query>(
   cache: Cache,
@@ -49,6 +52,8 @@ function createMeQueryUpdater(mutationName: string): UrqlMutationUpdaterType {
         }
       }
     );
+    // Switch to a better method with lesser data load
+    invalidatePosts(cache);
   };
 }
 
@@ -59,15 +64,50 @@ const logout: UrqlMutationUpdaterType = (_result, _args, cache, _info) => {
     _result,
     () => ({ me: null })
   );
+  invalidatePosts(cache);
 };
 
 const createPost: UrqlMutationUpdaterType = (_result, _args, cache, _info) => {
-  const allFields = cache.inspectFields("Query");
-  const fieldInfos = allFields.filter((field) => field.fieldName === "posts");
+  invalidatePosts(cache);
+};
 
-  fieldInfos.forEach((fi) => {
-    cache.invalidate("Query", fi.fieldKey);
-  });
+const ReqPostFragment = gql`
+  fragment _ on Post {
+    id
+    points
+    voteStatus
+  }
+`;
+const updateVote: UrqlMutationUpdaterType = (_result, args, cache, _info) => {
+  const { postId, isUp } = args as VoteMutationVariables;
+  const isVoting = typeof isUp !== "undefined";
+
+  const post = cache.readFragment(ReqPostFragment, { id: postId });
+
+  if (post) {
+    let params;
+    if (isVoting) {
+      // Vote is called
+      const value = isUp ? 1 : -1;
+      const realValue = (post.voteStatus ? 2 : 1) * value;
+
+      if (post.voteStatus === value) return;
+      params = {
+        id: postId,
+        points: post.points + realValue,
+        voteStatus: value,
+      };
+    } else {
+      // Unvote is called
+      params = {
+        id: postId,
+        points: post.points - post.voteStatus,
+        voteStatus: null,
+      };
+    }
+
+    cache.writeFragment(ReqPostFragment, params);
+  }
 };
 
 const urqlCacheExchangeUpdates: Partial<UpdatesConfig> = {
@@ -77,6 +117,8 @@ const urqlCacheExchangeUpdates: Partial<UpdatesConfig> = {
     changePasswordFromToken: createMeQueryUpdater("changePasswordFromToken"),
     logout,
     createPost,
+    vote: updateVote,
+    unvote: updateVote,
   },
 };
 

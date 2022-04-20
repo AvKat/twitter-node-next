@@ -31,7 +31,7 @@ export class PostResolver {
   ): Promise<PostsResponse> {
     const realLimit = Math.min(50, limit);
     const realLimitPlusOne = realLimit + 1;
-    const { userId } = req.session;
+    const userId = req.session.userId || false;
 
     const replacements: any[] = [realLimitPlusOne];
 
@@ -40,9 +40,6 @@ export class PostResolver {
     }
 
     if (cursor) {
-      if (!userId) {
-        replacements.push(userId);
-      }
       replacements.push(new Date(parseInt(cursor)));
     }
 
@@ -58,12 +55,12 @@ export class PostResolver {
       ) author,
       ${
         userId
-          ? `(SELECT value FROM updoot WHERE "authorId" = $2 AND "postId" = p.id) "voteStatus"`
+          ? `(SELECT value FROM updoot WHERE "userId" = $2 AND "postId" = p.id) "voteStatus"`
           : 'null as "voteStatus"'
       }
       FROM post p
       INNER JOIN public.user u on u.id = p."authorId"
-      ${cursor ? 'WHERE p."createdAt" < $3' : ""}
+      ${cursor ? `WHERE p."createdAt" < $${replacements.length}` : ""}
       ORDER BY p."createdAt" DESC
       LIMIT $1
     `,
@@ -75,7 +72,7 @@ export class PostResolver {
   }
 
   @Query(() => Post, { nullable: true })
-  post(@Arg("id") id: number): Promise<Post | null> {
+  post(@Arg("id", () => Int) id: number): Promise<Post | null> {
     return Post.findOneBy({ id });
   }
 

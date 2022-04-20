@@ -8,14 +8,14 @@ export class Updoot extends BaseEntity {
   value!: number;
 
   @PrimaryColumn()
-  authorId!: number;
+  userId!: number;
 
   @ManyToOne(() => User, (user) => user.updoots)
-  author!: User;
+  user!: User;
 
   @PrimaryColumn()
   postId!: number;
 
   @ManyToOne(() => Post, (post) => post.updoots)
-  posts!: User;
+  post!: Post;
 }

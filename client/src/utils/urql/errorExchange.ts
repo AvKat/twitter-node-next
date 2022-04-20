@@ -9,7 +9,11 @@ const errorExchange: Exchange =
       forward(ops$),
       tap(({ error }) => {
         if (error?.message.toLowerCase().includes("not authenticated")) {
-          Router.replace("/auth/login");
+          const return_to = Router.pathname;
+          console.log(return_to);
+          const redirect = return_to === "/" ? Router.push : Router.replace;
+
+          redirect({ pathname: "/auth/login", query: { return_to } });
         }
       })
     );

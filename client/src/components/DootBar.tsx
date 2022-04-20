@@ -3,6 +3,7 @@ import { Flex, IconButton } from "@chakra-ui/react";
 import React from "react";
 import {
   PostsFieldsFragment,
+  useMeQuery,
   useUnvoteMutation,
   useVoteMutation,
 } from "../generated/graphql";
@@ -10,6 +11,7 @@ import {
 type DootBarProps = PostsFieldsFragment;
 
 const DootBar: React.FC<DootBarProps> = (post) => {
+  const [{ data: me }] = useMeQuery();
   const [, vote] = useVoteMutation();
   const [, unvote] = useUnvoteMutation();
 
@@ -17,10 +19,12 @@ const DootBar: React.FC<DootBarProps> = (post) => {
   const isStatusDown = post.voteStatus === -1;
 
   const createOnclicker = (isUp: boolean) => () => {
-    if ((isStatusUp && isUp) || (isStatusDown && !isUp)) {
-      unvote({ postId: post.id });
-    } else {
-      vote({ postId: post.id, isUp });
+    if (me?.me) {
+      if ((isStatusUp && isUp) || (isStatusDown && !isUp)) {
+        unvote({ postId: post.id });
+      } else {
+        vote({ postId: post.id, isUp });
+      }
     }
   };
 

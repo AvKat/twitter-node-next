@@ -1,4 +1,5 @@
 import { Arg, Ctx, Int, Mutation, Resolver, UseMiddleware } from "type-graphql";
+import { FindOptionsWhere } from "typeorm";
 import { AppDataSource } from "../DataSource";
 import { Post } from "../entities/Post";
 import { Updoot } from "../entities/Updoot";
@@ -17,7 +18,7 @@ class UpdootResolver {
     const { userId } = req.session;
     const value = isUp ? 1 : -1;
 
-    const doot = await Updoot.findOneBy({ postId, authorId: userId });
+    const doot = await Updoot.findOneBy({ postId, userId });
     if (doot?.value === value) return true;
 
     try {
@@ -27,13 +28,13 @@ class UpdootResolver {
             Updoot,
             {
               postId,
-              authorId: userId,
+              userId,
             },
             { value }
           );
         } else {
           await em.insert(Updoot, {
-            authorId: userId!,
+            userId,
             postId,
             value,
           });
@@ -59,7 +60,10 @@ class UpdootResolver {
     @Ctx() { req }: AppContext,
     @Arg("postId", () => Int) postId: number
   ): Promise<boolean> {
-    const where = { authorId: req.session.userId, postId };
+    const where: FindOptionsWhere<Updoot> = {
+      userId: req.session.userId,
+      postId,
+    };
     const doot = await Updoot.findOneBy(where);
 
     if (!doot) {
