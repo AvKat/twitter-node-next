@@ -26,7 +26,7 @@ const CreatePost: NextPage = () => {
             setErrors(toErrorMap(data.createPost.errors));
           } else if (data?.createPost.post) {
             // Change this to the post link
-            router.push("/");
+            router.push(`/post/${data.createPost.post.id}`);
           }
         }}
       >

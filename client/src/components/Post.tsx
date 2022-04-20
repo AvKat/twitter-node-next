@@ -1,4 +1,5 @@
-import { Flex, Heading, Text } from "@chakra-ui/react";
+import { Flex, Heading, Link, Text } from "@chakra-ui/react";
+import NextLink from "next/link";
 import React from "react";
 import { PostsFieldsFragment } from "../generated/graphql";
 import { DootBar } from "./DootBar";
@@ -14,12 +15,17 @@ const Post: React.FC<PostProps> = (post) => {
       <DootBar {...post} />
       <Flex flex={1} flexDirection="column" justifyContent={"center"}>
         <Flex mr={3} mb={5}>
-          <Heading fontSize="xl">{post.title}</Heading>
+          <NextLink href={`/post/${post.id}`}>
+            <Link>
+              <Heading fontSize="xl">{post.title}</Heading>
+            </Link>
+          </NextLink>
           <Text ml={"auto"} fontWeight="semibold">
             {post.author.username}
           </Text>
         </Flex>
         <Text>{evalSnippet(post.textSnippet)}</Text>
+        {post.children}
       </Flex>
     </Flex>
   );

@@ -1,5 +1,5 @@
 import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
-import { Flex, IconButton } from "@chakra-ui/react";
+import { Flex, FlexboxProps, IconButton, Text } from "@chakra-ui/react";
 import React from "react";
 import {
   PostsFieldsFragment,
@@ -8,9 +8,14 @@ import {
   useVoteMutation,
 } from "../generated/graphql";
 
-type DootBarProps = PostsFieldsFragment;
+type DootBarProps = PostsFieldsFragment & {
+  flexDirection?: FlexboxProps["flexDirection"];
+};
 
-const DootBar: React.FC<DootBarProps> = (post) => {
+const DootBar: React.FC<DootBarProps> = ({
+  flexDirection = "column",
+  ...post
+}) => {
   const [{ data: me }] = useMeQuery();
   const [, vote] = useVoteMutation();
   const [, unvote] = useUnvoteMutation();
@@ -29,14 +34,14 @@ const DootBar: React.FC<DootBarProps> = (post) => {
   };
 
   return (
-    <Flex direction={"column"} align="center" mr={5}>
+    <Flex direction={flexDirection} align="center" mr={5} alignSelf="center">
       <IconButton
         aria-label="Updoot"
         icon={<ChevronUpIcon />}
         colorScheme={post.voteStatus === 1 ? "green" : undefined}
         onClick={createOnclicker(true)}
       />
-      {post.points}
+      <Text mx="3">{post.points}</Text>
       <IconButton
         aria-label="Downdoot"
         icon={<ChevronDownIcon />}

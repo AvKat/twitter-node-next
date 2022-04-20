@@ -72,8 +72,32 @@ export class PostResolver {
   }
 
   @Query(() => Post, { nullable: true })
-  post(@Arg("id", () => Int) id: number): Promise<Post | null> {
-    return Post.findOneBy({ id });
+  async post(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: AppContext
+  ): Promise<Post | null> {
+    const post = await Post.findOne({
+      where: { id },
+      relations: {
+        author: true,
+        updoots: true,
+      },
+    });
+    if (!post) {
+      return null;
+    }
+
+    let voteStatus = null;
+    if (req.session.userId) {
+      voteStatus = post.updoots.find(
+        (u) => u.userId === req.session.userId
+      )?.value;
+    }
+
+    return {
+      ...post,
+      voteStatus: voteStatus || null,
+    } as any;
   }
 
   @Mutation(() => PostMutationResponse)
