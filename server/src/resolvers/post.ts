@@ -15,6 +15,8 @@ import { PostInput, PostsResponse, PostMutationResponse } from "./_helpers";
 import { AppContext } from "../types";
 import { validateField } from "../utils/validation";
 import { lengthValidator } from "../utils/validation/validators";
+import { MIN_POST_TEXT_LENGTH, MIN_POST_TITLE_LENGTH } from "../constants";
+import { validationErrors } from "../utils/validation/errors";
 
 @Resolver(() => Post)
 export class PostResolver {
@@ -107,9 +109,11 @@ export class PostResolver {
     @Ctx() { req }: AppContext
   ): Promise<PostMutationResponse> {
     const titleErrors = validateField(input.title, [
-      lengthValidator(5, "title"),
+      lengthValidator(MIN_POST_TITLE_LENGTH, "title"),
     ]);
-    const textErrors = validateField(input.text, [lengthValidator(15, "text")]);
+    const textErrors = validateField(input.text, [
+      lengthValidator(MIN_POST_TEXT_LENGTH, "text"),
+    ]);
     const errors = [...titleErrors, ...textErrors];
 
     if (errors.length > 0) {
@@ -123,27 +127,59 @@ export class PostResolver {
     return { post };
   }
 
-  @Mutation(() => Post, { nullable: true })
+  @Mutation(() => PostMutationResponse)
   @UseMiddleware(isAuth)
   async updatePost(
-    @Arg("id") id: number,
-    @Arg("title", () => String, { nullable: true }) title?: string
-  ): Promise<Post | null> {
-    const post = await Post.findOneBy({ id });
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: AppContext,
+    @Arg("title", () => String, { nullable: true }) title?: string,
+    @Arg("text", () => String, { nullable: true }) text?: string
+  ): Promise<PostMutationResponse> {
+    const errors = [];
+
+    if (title) {
+      const titleErrors = validateField(title, [
+        lengthValidator(MIN_POST_TITLE_LENGTH, "title"),
+      ]);
+      errors.push(...titleErrors);
+    }
+    if (text) {
+      const textErrors = validateField(text, [
+        lengthValidator(MIN_POST_TEXT_LENGTH, "text"),
+      ]);
+      errors.push(...textErrors);
+    }
+
+    if (errors.length > 0) {
+      return { errors };
+    }
+
+    const data = await Post.createQueryBuilder()
+      .update()
+      .set({ text, title })
+      .where('id = :id and "authorId" = :authorId', {
+        id,
+        authorId: req.session.userId,
+      })
+      .returning("*")
+      .execute();
+    const post = data.raw[0];
+
     if (!post) {
-      return null;
+      return { errors: [validationErrors.user.unauthorized] };
     }
-    if (typeof title !== "undefined") {
-      Post.update({ id }, { title });
-    }
-    return post;
+
+    return { post };
   }
 
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
-  async deletePost(@Arg("id") id: number): Promise<boolean> {
+  async deletePost(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: AppContext
+  ): Promise<boolean> {
     try {
-      Post.delete({ id });
+      await Post.delete({ id, authorId: req.session.userId });
       return true;
     } catch (err) {
       return false;

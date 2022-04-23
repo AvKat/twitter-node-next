@@ -6,6 +6,7 @@ enum Fields {
   usernameOrEmail = "usernameOrEmail",
   password = "password",
   token = "token",
+  unauthorized = "unauthorized",
 }
 
 export const validationErrors = {
@@ -46,6 +47,12 @@ export const validationErrors = {
     invalid: {
       field: Fields.token,
       message: "Invalid token",
+    },
+  },
+  user: {
+    unauthorized: {
+      field: Fields.unauthorized,
+      message: "You do not have permissions to perform this action",
     },
   },
   length: (field: string, min: number, name?: string) => ({

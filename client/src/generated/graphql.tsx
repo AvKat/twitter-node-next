@@ -31,7 +31,7 @@ export type Mutation = {
   logout: Scalars['Boolean'];
   register: UserResponse;
   unvote: Scalars['Boolean'];
-  updatePost?: Maybe<Post>;
+  updatePost: PostMutationResponse;
   vote: Scalars['Boolean'];
 };
 
@@ -47,7 +47,7 @@ export type MutationCreatePostArgs = {
 
 
 export type MutationDeletePostArgs = {
-  id: Scalars['Float'];
+  id: Scalars['Int'];
 };
 
 
@@ -72,7 +72,8 @@ export type MutationUnvoteArgs = {
 
 
 export type MutationUpdatePostArgs = {
-  id: Scalars['Float'];
+  id: Scalars['Int'];
+  text?: InputMaybe<Scalars['String']>;
   title?: InputMaybe<Scalars['String']>;
 };
 
@@ -220,12 +221,28 @@ export type CreatePostMutationVariables = Exact<{
 
 export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'PostMutationResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, post?: { __typename?: 'Post', id: number, title: string, text: string, points: number, authorId: number, createdAt: string } | null } };
 
+export type DeletePostMutationVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type DeletePostMutation = { __typename?: 'Mutation', deletePost: boolean };
+
 export type UnvoteMutationVariables = Exact<{
   postId: Scalars['Int'];
 }>;
 
 
 export type UnvoteMutation = { __typename?: 'Mutation', unvote: boolean };
+
+export type UpdatePostMutationVariables = Exact<{
+  id: Scalars['Int'];
+  title?: InputMaybe<Scalars['String']>;
+  text?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type UpdatePostMutation = { __typename?: 'Mutation', updatePost: { __typename?: 'PostMutationResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, post?: { __typename?: 'Post', id: number, title: string, text: string, points: number, authorId: number, createdAt: string } | null } };
 
 export type VoteMutationVariables = Exact<{
   postId: Scalars['Int'];
@@ -376,6 +393,15 @@ export const CreatePostDocument = gql`
 export function useCreatePostMutation() {
   return Urql.useMutation<CreatePostMutation, CreatePostMutationVariables>(CreatePostDocument);
 };
+export const DeletePostDocument = gql`
+    mutation DeletePost($id: Int!) {
+  deletePost(id: $id)
+}
+    `;
+
+export function useDeletePostMutation() {
+  return Urql.useMutation<DeletePostMutation, DeletePostMutationVariables>(DeletePostDocument);
+};
 export const UnvoteDocument = gql`
     mutation Unvote($postId: Int!) {
   unvote(postId: $postId)
@@ -384,6 +410,17 @@ export const UnvoteDocument = gql`
 
 export function useUnvoteMutation() {
   return Urql.useMutation<UnvoteMutation, UnvoteMutationVariables>(UnvoteDocument);
+};
+export const UpdatePostDocument = gql`
+    mutation UpdatePost($id: Int!, $title: String, $text: String) {
+  updatePost(id: $id, title: $title, text: $text) {
+    ...PostMutationResponse
+  }
+}
+    ${PostMutationResponseFragmentDoc}`;
+
+export function useUpdatePostMutation() {
+  return Urql.useMutation<UpdatePostMutation, UpdatePostMutationVariables>(UpdatePostDocument);
 };
 export const VoteDocument = gql`
     mutation Vote($postId: Int!, $isUp: Boolean!) {

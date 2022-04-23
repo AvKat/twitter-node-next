@@ -13,6 +13,7 @@ import {
   LogoutMutation,
   UserResponse,
   VoteMutationVariables,
+  MutationDeletePostArgs,
 } from "../../generated/graphql";
 import { invalidatePosts } from "./_helpers";
 
@@ -71,6 +72,13 @@ const createPost: UrqlMutationUpdaterType = (_result, _args, cache, _info) => {
   invalidatePosts(cache);
 };
 
+const deletePost: UrqlMutationUpdaterType = (_result, args, cache, _info) => {
+  cache.invalidate({
+    __typename: "Post",
+    id: (args as MutationDeletePostArgs).id,
+  });
+};
+
 const ReqPostFragment = gql`
   fragment _ on Post {
     id
@@ -119,6 +127,7 @@ const urqlCacheExchangeUpdates: Partial<UpdatesConfig> = {
     createPost,
     vote: updateVote,
     unvote: updateVote,
+    deletePost,
   },
 };
 

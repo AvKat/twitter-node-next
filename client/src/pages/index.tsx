@@ -24,7 +24,9 @@ const Index: NextPage = () => {
       <br />
       <Stack spacing={5}>
         {data?.posts &&
-          data.posts.posts.map((post) => <Post {...post} key={post.id} />)}
+          data.posts.posts.map(
+            (post) => post && <Post {...post} key={post.id} />
+          )}
       </Stack>
       {data && !fetching && data.posts.hasMore && (
         <Flex my={8}>

@@ -1,6 +1,7 @@
 import { EditIcon } from "@chakra-ui/icons";
 import { Flex, Heading, IconButton, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { DootBar } from "../../components/DootBar";
 import { LayoutWithNavbar } from "../../components/LayoutWithNavbar";
@@ -30,11 +31,13 @@ const PostPage = () => {
               {data.post.title}
             </Heading>
             {me?.me?.id === data.post.author.id && (
-              <IconButton
-                icon={<EditIcon />}
-                aria-label="Edit Post"
-                ml={"auto"}
-              />
+              <NextLink href={`/post/edit/${data.post.id}`}>
+                <IconButton
+                  icon={<EditIcon />}
+                  aria-label="Edit Post"
+                  ml={"auto"}
+                />
+              </NextLink>
             )}
           </Flex>
           <Text fontWeight="semibold" ml={1} textDecor="underline">
