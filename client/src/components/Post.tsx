@@ -13,20 +13,17 @@ const Post: React.FC<PostProps> = (post) => {
   return (
     <Flex p={5} shadow="md" borderWidth="1px">
       <DootBar {...post} />
-      <Flex flex={1} flexDirection="column" justifyContent={"center"}>
-        <Flex mr={3} mb={5}>
-          <NextLink href={`/post/${post.id}`}>
-            <Link>
-              <Heading fontSize="xl">{post.title}</Heading>
-            </Link>
-          </NextLink>
-          <Text ml={"auto"} fontWeight="semibold">
-            {post.author.username}
-          </Text>
-        </Flex>
-        <Text>{evalSnippet(post.textSnippet)}</Text>
-        {post.children}
-      </Flex>
+      <NextLink href={`/post/${post.id}`}>
+        <Link>
+          <Flex flex={1} flexDirection="column" justifyContent={"center"}>
+            <Flex mr={3} mb={5} onClick={(e) => e.preventDefault()}>
+              <Heading fontSize="xl">{`@${post.author.username}`}</Heading>
+            </Flex>
+            <Text>{evalSnippet(post.textSnippet)}</Text>
+            {post.children}
+          </Flex>
+        </Link>
+      </NextLink>
     </Flex>
   );
 };

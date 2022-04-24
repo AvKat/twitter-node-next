@@ -18,7 +18,7 @@ const CreatePost: NextPage = () => {
   return (
     <LayoutWithNavbar variant="small">
       <Formik
-        initialValues={{ title: "", text: "" }}
+        initialValues={{ text: "" }}
         onSubmit={async (val, { setErrors }) => {
           const { data } = await createPost(val);
 
@@ -31,7 +31,6 @@ const CreatePost: NextPage = () => {
       >
         {({ isSubmitting }) => (
           <Form>
-            <InputField label="Title" name="title" />
             <Box mt={8}>
               <InputField
                 label="Body"

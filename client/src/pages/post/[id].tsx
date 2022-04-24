@@ -1,5 +1,5 @@
 import { EditIcon } from "@chakra-ui/icons";
-import { Flex, Heading, IconButton, Text } from "@chakra-ui/react";
+import { Button, Flex, Heading, IconButton, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
@@ -25,10 +25,10 @@ const PostPage = () => {
   return (
     <LayoutWithNavbar>
       <Flex direction={"column"}>
-        <Flex flex={1} flexDirection="column" justifyContent={"center"}>
+        <Flex flex={1} flexDirection="column">
           <Flex alignItems={"center"}>
             <Heading fontSize="4xl" my={2}>
-              {data.post.title}
+              {`@${data.post.author.username}`}
             </Heading>
             {me?.me?.id === data.post.author.id && (
               <NextLink href={`/post/edit/${data.post.id}`}>
@@ -44,11 +44,14 @@ const PostPage = () => {
             {`${data.post.author.username}:  ${date.toDateString()}`}
           </Text>
           <Text my={7}>{data.post.text}</Text>
-          <DootBar
-            {...data.post}
-            textSnippet={data.post.text}
-            flexDirection="row"
-          />
+          <Flex flex={1} justifyContent="center">
+            <DootBar
+              {...data.post}
+              textSnippet={data.post.text}
+              flexDirection="row"
+            />
+            <Button>Add Comment</Button>
+          </Flex>
         </Flex>
       </Flex>
     </LayoutWithNavbar>

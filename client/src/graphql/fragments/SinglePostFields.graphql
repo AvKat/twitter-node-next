@@ -1,9 +1,12 @@
 fragment SinglePostFields on Post {
   id
-  title
   text
   points
-  authorId
+  author {
+    id
+    username
+  }
+  voteStatus
   createdAt
   textSnippet
 }

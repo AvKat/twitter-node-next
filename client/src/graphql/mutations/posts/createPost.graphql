@@ -1,5 +1,5 @@
-mutation CreatePost($title: String!, $text: String!) {
-  createPost(input: { title: $title, text: $text }) {
+mutation CreatePost($text: String!, $parentId: Int) {
+  createPost(text: $text, parentId: $parentId) {
     ...PostMutationResponse
   }
 }

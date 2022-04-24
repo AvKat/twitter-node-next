@@ -24,7 +24,6 @@ const EditPost: NextPage = () => {
 
   const id =
     typeof router.query.id === "string" ? parseInt(router.query.id) : -1;
-  console.log(id);
 
   const [{ data }, fetchPosts] = usePostQuery({
     variables: { id },
@@ -49,7 +48,7 @@ const EditPost: NextPage = () => {
   return (
     <LayoutWithNavbar variant="small">
       <Formik
-        initialValues={{ title: data?.post?.title, text: data?.post?.text }}
+        initialValues={{ text: data?.post?.text }}
         onSubmit={async (val, { setErrors }) => {
           const { data } = await updatePost({ id, ...val });
 
@@ -62,7 +61,6 @@ const EditPost: NextPage = () => {
       >
         {({ isSubmitting }) => (
           <Form>
-            <InputField label="Title" name="title" />
             <Box mt={8}>
               <InputField
                 label="Body"
