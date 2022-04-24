@@ -21,10 +21,6 @@ export class Post extends BaseEntity {
 
   @Field()
   @Column()
-  title!: string;
-
-  @Field()
-  @Column()
   text!: string;
 
   @Field()
@@ -38,6 +34,24 @@ export class Post extends BaseEntity {
   @Field()
   @ManyToOne(() => User, (user) => user.posts)
   author!: User;
+
+  @Field(() => Post, { nullable: true })
+  @ManyToOne(() => Post, (p) => p.children, {
+    nullable: true,
+    onDelete: "CASCADE",
+  })
+  parent: Post | null;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ type: "integer", default: null, nullable: true })
+  parentId!: number | null;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ type: "integer", nullable: true })
+  threadFirstId: number | null;
+
+  @OneToMany(() => Post, (updoot) => updoot.parent)
+  children: Post[];
 
   @Field(() => Int, { nullable: true })
   voteStatus: number | null;

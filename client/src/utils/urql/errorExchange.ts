@@ -10,7 +10,6 @@ const errorExchange: Exchange =
       tap(({ error }) => {
         if (error?.message.toLowerCase().includes("not authenticated")) {
           const return_to = Router.pathname;
-          console.log(return_to);
           const redirect = return_to === "/" ? Router.push : Router.replace;
 
           redirect({ pathname: "/auth/login", query: { return_to } });

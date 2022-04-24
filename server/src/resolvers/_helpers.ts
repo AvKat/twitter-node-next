@@ -35,15 +35,6 @@ class TokenPasswordInput {
   newPassword: string;
 }
 
-@InputType()
-class PostInput {
-  @Field()
-  title: string;
-
-  @Field()
-  text: string;
-}
-
 @ObjectType()
 class FieldError {
   @Field()
@@ -83,7 +74,6 @@ export {
   UsernameOrEmailPasswordInputResolver,
   UsernameEmailPasswordInputResolver,
   FieldError,
-  PostInput,
   PostsResponse,
   PostMutationResponse,
   UserResponse,

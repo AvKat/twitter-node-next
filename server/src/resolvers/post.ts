@@ -11,14 +11,13 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { isAuth } from "../utils/isAuth";
-import { PostInput, PostsResponse, PostMutationResponse } from "./_helpers";
+import { PostsResponse, PostMutationResponse } from "./_helpers";
 import { AppContext } from "../types";
 import { validateField } from "../utils/validation";
 import { lengthValidator } from "../utils/validation/validators";
-import { MIN_POST_TEXT_LENGTH, MIN_POST_TITLE_LENGTH } from "../constants";
+import { MIN_POST_TEXT_LENGTH } from "../constants";
 import { validationErrors } from "../utils/validation/errors";
 import { User } from "../entities/User";
-import { LessThan } from "typeorm";
 
 @Resolver(() => Post)
 export class PostResolver {
@@ -46,6 +45,11 @@ export class PostResolver {
     return updoot?.value || null;
   }
 
+  @FieldResolver(() => [Post], { nullable: true })
+  async children(@Root() post: Post) {
+    return Post.findBy({ parentId: post.id });
+  }
+
   @Query(() => PostsResponse)
   async posts(
     @Arg("limit", () => Int) limit: number,
@@ -54,16 +58,18 @@ export class PostResolver {
     const realLimit = Math.min(50, limit);
     const realLimitPlusOne = realLimit + 1;
 
-    const posts = await Post.find({
-      order: {
-        createdAt: "DESC",
-      },
-      take: realLimitPlusOne,
-      where: {
-        createdAt: cursor ? LessThan(new Date(parseInt(cursor))) : undefined,
-      },
-    });
+    const qb = Post.createQueryBuilder()
+      .where('"parentId" is null')
+      .take(realLimitPlusOne)
+      .orderBy('"createdAt"', "DESC");
 
+    if (cursor) {
+      qb.andWhere('"createdAt" < :cursor', {
+        cursor: new Date(parseInt(cursor)),
+      });
+    }
+
+    const posts = await qb.getMany();
     const hasMore = posts.length === realLimitPlusOne;
     return { hasMore, posts: posts.slice(0, realLimit) };
   }
@@ -78,23 +84,21 @@ export class PostResolver {
   @Mutation(() => PostMutationResponse)
   @UseMiddleware(isAuth)
   async createPost(
-    @Arg("input") input: PostInput,
-    @Ctx() { req }: AppContext
+    @Arg("text") text: string,
+    @Ctx() { req }: AppContext,
+    @Arg("parentId", () => Int, { nullable: true }) parentId?: number
   ): Promise<PostMutationResponse> {
-    const titleErrors = validateField(input.title, [
-      lengthValidator(MIN_POST_TITLE_LENGTH, "title"),
-    ]);
-    const textErrors = validateField(input.text, [
+    const errors = validateField(text, [
       lengthValidator(MIN_POST_TEXT_LENGTH, "text"),
     ]);
-    const errors = [...titleErrors, ...textErrors];
 
     if (errors.length > 0) {
       return { errors };
     }
 
     const post = await Post.create({
-      ...input,
+      text,
+      parentId,
       authorId: req.session.userId,
     }).save();
     return { post };
@@ -105,31 +109,20 @@ export class PostResolver {
   async updatePost(
     @Arg("id", () => Int) id: number,
     @Ctx() { req }: AppContext,
-    @Arg("title", () => String, { nullable: true }) title?: string,
     @Arg("text", () => String, { nullable: true }) text?: string
   ): Promise<PostMutationResponse> {
-    const errors = [];
-
-    if (title) {
-      const titleErrors = validateField(title, [
-        lengthValidator(MIN_POST_TITLE_LENGTH, "title"),
-      ]);
-      errors.push(...titleErrors);
-    }
     if (text) {
-      const textErrors = validateField(text, [
+      const errors = validateField(text, [
         lengthValidator(MIN_POST_TEXT_LENGTH, "text"),
       ]);
-      errors.push(...textErrors);
-    }
-
-    if (errors.length > 0) {
-      return { errors };
+      if (errors.length > 0) {
+        return { errors };
+      }
     }
 
     const data = await Post.createQueryBuilder()
       .update()
-      .set({ text, title })
+      .set({ text })
       .where('id = :id and "authorId" = :authorId', {
         id,
         authorId: req.session.userId,
