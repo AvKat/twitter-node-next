@@ -17,6 +17,8 @@ import { validateField } from "../utils/validation";
 import { lengthValidator } from "../utils/validation/validators";
 import { MIN_POST_TEXT_LENGTH, MIN_POST_TITLE_LENGTH } from "../constants";
 import { validationErrors } from "../utils/validation/errors";
+import { User } from "../entities/User";
+import { LessThan } from "typeorm";
 
 @Resolver(() => Post)
 export class PostResolver {
@@ -25,81 +27,52 @@ export class PostResolver {
     return post.text.slice(0, 50);
   }
 
+  @FieldResolver(() => User)
+  author(@Root() post: Post, @Ctx() { userLoader }: AppContext) {
+    return userLoader.load(post.authorId);
+  }
+
+  @FieldResolver(() => Int, { nullable: true })
+  async voteStatus(
+    @Root() post: Post,
+    @Ctx() { req, updootLoader }: AppContext
+  ): Promise<number | null> {
+    if (!req.session.userId) return null;
+
+    const updoot = await updootLoader.load({
+      postId: post.id,
+      userId: req.session.userId,
+    });
+    return updoot?.value || null;
+  }
+
   @Query(() => PostsResponse)
   async posts(
     @Arg("limit", () => Int) limit: number,
-    @Ctx() { req }: AppContext,
     @Arg("cursor", { nullable: true }) cursor?: string
   ): Promise<PostsResponse> {
     const realLimit = Math.min(50, limit);
     const realLimitPlusOne = realLimit + 1;
-    const userId = req.session.userId || false;
 
-    const replacements: any[] = [realLimitPlusOne];
-
-    if (userId) {
-      replacements.push(userId);
-    }
-
-    if (cursor) {
-      replacements.push(new Date(parseInt(cursor)));
-    }
-
-    const posts = await Post.query(
-      `
-      SELECT p.*,
-      json_build_object(
-        'id', u.id,
-        'username', u.username,
-        'email', u.email,
-        '"createdAt"', u."createdAt",
-        '"updatedAt"', u."updatedAt"
-      ) author,
-      ${
-        userId
-          ? `(SELECT value FROM updoot WHERE "userId" = $2 AND "postId" = p.id) "voteStatus"`
-          : 'null as "voteStatus"'
-      }
-      FROM post p
-      INNER JOIN public.user u on u.id = p."authorId"
-      ${cursor ? `WHERE p."createdAt" < $${replacements.length}` : ""}
-      ORDER BY p."createdAt" DESC
-      LIMIT $1
-    `,
-      replacements
-    );
+    const posts = await Post.find({
+      order: {
+        createdAt: "DESC",
+      },
+      take: realLimitPlusOne,
+      where: {
+        createdAt: cursor ? LessThan(new Date(parseInt(cursor))) : undefined,
+      },
+    });
 
     const hasMore = posts.length === realLimitPlusOne;
     return { hasMore, posts: posts.slice(0, realLimit) };
   }
 
   @Query(() => Post, { nullable: true })
-  async post(
-    @Arg("id", () => Int) id: number,
-    @Ctx() { req }: AppContext
-  ): Promise<Post | null> {
-    const post = await Post.findOne({
+  post(@Arg("id", () => Int) id: number): Promise<Post | null> {
+    return Post.findOne({
       where: { id },
-      relations: {
-        author: true,
-        updoots: true,
-      },
     });
-    if (!post) {
-      return null;
-    }
-
-    let voteStatus = null;
-    if (req.session.userId) {
-      voteStatus = post.updoots.find(
-        (u) => u.userId === req.session.userId
-      )?.value;
-    }
-
-    return {
-      ...post,
-      voteStatus: voteStatus || null,
-    } as any;
   }
 
   @Mutation(() => PostMutationResponse)

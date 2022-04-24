@@ -14,6 +14,8 @@ import { AppContext } from "./types";
 import cors from "cors";
 import { AppDataSource } from "./DataSource";
 import { UpdootResolver } from "./resolvers/updootResolver";
+import { createUserDataloader } from "./utils/createUserDataloader";
+import { createUpdootDataloader } from "./utils/createUpdootDataloader";
 
 const main = async () => {
   await AppDataSource.initialize();
@@ -57,6 +59,8 @@ const main = async () => {
       req,
       res,
       redis,
+      userLoader: createUserDataloader(),
+      updootLoader: createUpdootDataloader(),
     }),
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
   });
